@@ -9,17 +9,17 @@ import "@eigenlayer-middleware/src/ServiceManagerBase.sol";
  * @title Primary entrypoint for procuring services from IncredibleSquaring.
  * @author Layr Labs, Inc.
  */
-contract IncredibleSquaringServiceManager is ServiceManagerBase {
+contract MfssiaServiceManager is ServiceManagerBase {
     using BytesLib for bytes;
 
-    IIncredibleSquaringTaskManager
-        public immutable incredibleSquaringTaskManager;
+    MfssiaTaskManager
+        public immutable mfssiaTaskManager;
 
     /// @notice when applied to a function, ensures that the function is only callable by the `registryCoordinator`.
-    modifier onlyIncredibleSquaringTaskManager() {
+    modifier onlyMfssiaTaskManager() {
         require(
-            msg.sender == address(incredibleSquaringTaskManager),
-            "onlyIncredibleSquaringTaskManager: not from credible squaring task manager"
+            msg.sender == address(mfssiaTaskManager),
+            "onlyMfssiaTaskManager: not from mfssia task manager"
         );
         _;
     }
@@ -27,9 +27,9 @@ contract IncredibleSquaringServiceManager is ServiceManagerBase {
     constructor(
         IBLSRegistryCoordinatorWithIndices _registryCoordinator,
         ISlasher _slasher,
-        IIncredibleSquaringTaskManager _incredibleSquaringTaskManager
+        IMfssiaTaskManager _mfssiaTaskManager
     ) ServiceManagerBase(_registryCoordinator, _slasher) {
-        incredibleSquaringTaskManager = _incredibleSquaringTaskManager;
+        mfssiaTaskManager = _mfssiaTaskManager;
     }
 
     /// @notice Called in the event of challenge resolution, in order to forward a call to the Slasher, which 'freezes' the `operator`.
@@ -37,7 +37,7 @@ contract IncredibleSquaringServiceManager is ServiceManagerBase {
     ///      We recommend writing slashing logic without integrating with the Slasher at this point in time.
     function freezeOperator(
         address operatorAddr
-    ) external override onlyIncredibleSquaringTaskManager {
+    ) external override onlyMfssiaTaskManager {
         // slasher.freezeOperator(operatorAddr);
     }
 }

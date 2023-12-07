@@ -2,15 +2,15 @@
 pragma solidity ^0.8.12;
 
 import "../src/MfssiaServiceManager.sol" as incsqsm;
-import {IncredibleSquaringTaskManager} from "../src/MfssiaTaskManager.sol";
+import {MfssiaTaskManager} from "../src/MfssiaTaskManager.sol";
 import {BLSMockAVSDeployer} from "@eigenlayer-middleware/test/utils/BLSMockAVSDeployer.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
-contract IncredibleSquaringTaskManagerTest is BLSMockAVSDeployer {
-    incsqsm.IncredibleSquaringServiceManager sm;
-    incsqsm.IncredibleSquaringServiceManager smImplementation;
-    IncredibleSquaringTaskManager tm;
-    IncredibleSquaringTaskManager tmImplementation;
+contract MfssiaTaskManagerTest is BLSMockAVSDeployer {
+    incsqsm.MfssiaServiceManager sm;
+    incsqsm.MfssiaServiceManager smImplementation;
+    MfssiaTaskManager tm;
+    MfssiaTaskManager tmImplementation;
 
     uint32 public constant TASK_RESPONSE_WINDOW_BLOCK = 30;
     address aggregator =
@@ -21,7 +21,7 @@ contract IncredibleSquaringTaskManagerTest is BLSMockAVSDeployer {
     function setUp() public {
         _setUpBLSMockAVSDeployer();
 
-        tmImplementation = new IncredibleSquaringTaskManager(
+        tmImplementation = new MfssiaTaskManager(
             incsqsm.IBLSRegistryCoordinatorWithIndices(
                 address(registryCoordinator)
             ),
@@ -29,7 +29,7 @@ contract IncredibleSquaringTaskManagerTest is BLSMockAVSDeployer {
         );
 
         // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
-        tm = IncredibleSquaringTaskManager(
+        tm = MfssiaTaskManager(
             address(
                 new TransparentUpgradeableProxy(
                     address(tmImplementation),

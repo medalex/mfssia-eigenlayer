@@ -12,13 +12,13 @@ import {BLSOperatorStateRetriever} from "@eigenlayer-middleware/src/BLSOperatorS
 import "@eigenlayer/contracts/libraries/BN254.sol";
 import "./IMfssiaTaskManager.sol";
 
-contract IncredibleSquaringTaskManager is
+contract MfssiaTaskManager is
     Initializable,
     OwnableUpgradeable,
     Pausable,
     BLSSignatureChecker,
     BLSOperatorStateRetriever,
-    IIncredibleSquaringTaskManager
+    IMfssiaTaskManager
 {
     using BN254 for BN254.G1Point;
 

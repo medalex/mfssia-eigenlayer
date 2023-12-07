@@ -17,9 +17,9 @@ import {IndexRegistry, IIndexRegistry} from "@eigenlayer-middleware/src/IndexReg
 import {StakeRegistry, IStakeRegistry} from "@eigenlayer-middleware/src/StakeRegistry.sol";
 import {IVoteWeigher} from "@eigenlayer-middleware/src/interfaces/IVoteWeigher.sol";
 
-import {IncredibleSquaringServiceManager, IServiceManager} from "../src/MfssiaServiceManager.sol";
-import {IncredibleSquaringTaskManager} from "../src/MfssiaTaskManager.sol";
-import {IIncredibleSquaringTaskManager} from "../src/IMfssiaTaskManager.sol";
+import {MfssiaServiceManager, IServiceManager} from "../src/MfssiaServiceManager.sol";
+import {MfssiaTaskManager} from "../src/MfssiaTaskManager.sol";
+import {IMfssiaTaskManager} from "../src/IMfssiaTaskManager.sol";
 import "../src/ERC20Mock.sol";
 
 import {Utils} from "./utils/Utils.sol";
@@ -31,7 +31,7 @@ import "forge-std/console.sol";
 
 // # To deploy and verify our contract
 // forge script script/CredibleSquaringDeployer.s.sol:CredibleSquaringDeployer --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
-contract CredibleSquaringDeployer is Script, Utils {
+contract MfssiaDeployer is Script, Utils {
     // DEPLOYMENT CONSTANTS
     uint256 public constant QUORUM_THRESHOLD_PERCENTAGE = 100;
     uint32 public constant TASK_RESPONSE_WINDOW_BLOCK = 30;
@@ -64,11 +64,11 @@ contract CredibleSquaringDeployer is Script, Utils {
     IStakeRegistry public stakeRegistry;
     IStakeRegistry public stakeRegistryImplementation;
 
-    IncredibleSquaringServiceManager public credibleSquaringServiceManager;
+    MfssiaServiceManager public credibleSquaringServiceManager;
     IServiceManager public credibleSquaringServiceManagerImplementation;
 
-    IncredibleSquaringTaskManager public credibleSquaringTaskManager;
-    IIncredibleSquaringTaskManager
+    MfssiaTaskManager public credibleSquaringTaskManager;
+    IMfssiaTaskManager
         public credibleSquaringTaskManagerImplementation;
 
     function run() external {
@@ -209,7 +209,7 @@ contract CredibleSquaringDeployer is Script, Utils {
          * First, deploy upgradeable proxy contracts that **will point** to the implementations. Since the implementation contracts are
          * not yet deployed, we give these proxies an empty contract as the initial implementation, to act as if they have no code.
          */
-        credibleSquaringServiceManager = IncredibleSquaringServiceManager(
+        credibleSquaringServiceManager = MfssiaServiceManager(
             address(
                 new TransparentUpgradeableProxy(
                     address(emptyContract),
@@ -218,7 +218,7 @@ contract CredibleSquaringDeployer is Script, Utils {
                 )
             )
         );
-        credibleSquaringTaskManager = IncredibleSquaringTaskManager(
+        credibleSquaringTaskManager = MfssiaTaskManager(
             address(
                 new TransparentUpgradeableProxy(
                     address(emptyContract),
@@ -365,7 +365,7 @@ contract CredibleSquaringDeployer is Script, Utils {
             address(indexRegistryImplementation)
         );
 
-        credibleSquaringServiceManagerImplementation = new IncredibleSquaringServiceManager(
+        credibleSquaringServiceManagerImplementation = new MfssiaServiceManager(
             registryCoordinator,
             slasher,
             credibleSquaringTaskManager
@@ -383,7 +383,7 @@ contract CredibleSquaringDeployer is Script, Utils {
             )
         );
 
-        credibleSquaringTaskManagerImplementation = new IncredibleSquaringTaskManager(
+        credibleSquaringTaskManagerImplementation = new MfssiaTaskManager(
             registryCoordinator,
             TASK_RESPONSE_WINDOW_BLOCK
         );

@@ -12,7 +12,7 @@ import "@eigenlayer-middleware/src/ServiceManagerBase.sol";
 contract MfssiaServiceManager is ServiceManagerBase {
     using BytesLib for bytes;
 
-    MfssiaTaskManager
+    IMfssiaTaskManager
         public immutable mfssiaTaskManager;
 
     /// @notice when applied to a function, ensures that the function is only callable by the `registryCoordinator`.

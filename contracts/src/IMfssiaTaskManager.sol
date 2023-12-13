@@ -26,8 +26,8 @@ interface IMfssiaTaskManager {
 
     // STRUCTS
     struct Task {
-        uint256 numberToBeSquared;
         uint32 taskCreatedBlock;
+        uint32 quorumThresholdPercentage;
         // task submitter decides on the criteria for a task to be completed
         // note that this does not mean the task was "correctly" answered (i.e. the number was squared correctly)
         //      this is for the challenge logic to verify
@@ -35,7 +35,9 @@ interface IMfssiaTaskManager {
         // are signed by at least quorumThresholdPercentage of the operators
         // note that we set the quorumThresholdPercentage to be the same for all quorumNumbers, but this could be changed
         bytes quorumNumbers;
-        uint32 quorumThresholdPercentage;
+        string system1Value;
+        string system2Value;
+        string dkgValue;
     }
 
     // Task response is hashed and signed by operators.
@@ -44,7 +46,7 @@ interface IMfssiaTaskManager {
         // Can be obtained by the operator from the event NewTaskCreated.
         uint32 referenceTaskIndex;
         // This is just the response that the operator has to compute by itself.
-        uint256 numberSquared;
+        string faultySystem;
     }
 
     // Extra information related to taskResponse, which is filled inside the contract.
@@ -58,7 +60,9 @@ interface IMfssiaTaskManager {
     // FUNCTIONS
     // NOTE: this function creates new task.
     function createNewTask(
-        uint256 numberToBeSquared,
+        string calldata system1Value,
+        string calldata system2Value,
+        string calldata dkgValue,        
         uint32 quorumThresholdPercentage,
         bytes calldata quorumNumbers
     ) external;

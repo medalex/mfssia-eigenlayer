@@ -49,7 +49,7 @@ contract MfssiaTaskManagerTest is BLSMockAVSDeployer {
     function testCreateNewTask() public {
         bytes memory quorumNumbers = new bytes(0);
         cheats.prank(generator, generator);
-        tm.createNewTask("E4AD93CA07ACB8D908A3AA41E920EA4F4EF4F26E7F86CF8291C5DB289780A5AE","E4AD93CA07ACB8D908A3AA41E920EA4F4EF4F26E7F86CF8291C5DB289780A5Af","E4AD93CA07ACB8D908A3AA41E920EA4F4EF4F26E7F86CF8291C5DB289780A5AE", 100, quorumNumbers);
+        tm.createNewTask("3636a05186cdf92f726fc5c9c2c9f961ae9b9c48f7ab841723fc539c10fe7f77","3636a05186cdf92f726fc5c9c2c9f961ae9b9c48f7ab841723fc539c10fe7f75","3636a05186cdf92f726fc5c9c2c9f961ae9b9c48f7ab841723fc539c10fe7f77", 100, quorumNumbers);
         assertEq(tm.latestTaskNum(), 1);
     }
 }

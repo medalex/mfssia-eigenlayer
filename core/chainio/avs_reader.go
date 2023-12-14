@@ -11,17 +11,22 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/eth"
 	logging "github.com/Layr-Labs/eigensdk-go/logging"
 
-	erc20mock "github.com/Layr-Labs/incredible-squaring-avs/contracts/bindings/ERC20Mock"
-	cstaskmanager "github.com/Layr-Labs/incredible-squaring-avs/contracts/bindings/IncredibleSquaringTaskManager"
-	"github.com/Layr-Labs/incredible-squaring-avs/core/config"
+	erc20mock "github.com/medalex/mfssia-eigenlayer/contracts/bindings/ERC20Mock"
+	cstaskmanager "github.com/medalex/mfssia-eigenlayer/contracts/bindings/MfssiaTaskManager"
+	"github.com/medalex/mfssia-eigenlayer/core/config"
 )
 
 type AvsReaderer interface {
 	sdkavsregistry.AvsRegistryReader
 
 	CheckSignatures(
-		ctx context.Context, msgHash [32]byte, quorumNumbers []byte, referenceBlockNumber uint32, nonSignerStakesAndSignature cstaskmanager.IBLSSignatureCheckerNonSignerStakesAndSignature,
+		ctx context.Context,
+		msgHash [32]byte,
+		quorumNumbers []byte,
+		referenceBlockNumber uint32,
+		nonSignerStakesAndSignature cstaskmanager.IBLSSignatureCheckerNonSignerStakesAndSignature,
 	) (cstaskmanager.IBLSSignatureCheckerQuorumStakeTotals, error)
+
 	GetErc20Mock(ctx context.Context, tokenAddr gethcommon.Address) (*erc20mock.ContractERC20Mock, error)
 }
 

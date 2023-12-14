@@ -2,7 +2,6 @@ package aggregator
 
 import (
 	"context"
-	"math/big"
 	"sync"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 	"github.com/medalex/mfssia-eigenlayer/core/chainio"
 	"github.com/medalex/mfssia-eigenlayer/core/config"
 
-	cstaskmanager "github.com/medalex/mfssia-eigenlayer/contracts/bindings/IncredibleSquaringTaskManager"
+	cstaskmanager "github.com/medalex/mfssia-eigenlayer/contracts/bindings/MfssiaTaskManager"
 )
 
 const (
@@ -30,6 +29,10 @@ const (
 	// ideally be fetched from the contracts
 	taskChallengeWindowBlock = 100
 	blockTimeSeconds         = 12 * time.Second
+
+	system1Value = "1234"
+	system2Value = "5678"
+	dkgValue     = "1234"
 )
 
 // Aggregator sends tasks (system 1 and system 2 data) onchain, then listens for operator signed TaskResponses.
@@ -71,15 +74,14 @@ type Aggregator struct {
 	avsWriter        chainio.AvsWriterer
 	// aggregation related fields
 	blsAggregationService blsagg.BlsAggregationService
-	tasks                 map[types.TaskIndex]cstaskmanager.IIncredibleSquaringTaskManagerTask
+	tasks                 map[types.TaskIndex]cstaskmanager.IMfssiaTaskManagerTask
 	tasksMu               sync.RWMutex
-	taskResponses         map[types.TaskIndex]map[sdktypes.TaskResponseDigest]cstaskmanager.IIncredibleSquaringTaskManagerTaskResponse
+	taskResponses         map[types.TaskIndex]map[sdktypes.TaskResponseDigest]cstaskmanager.IMfssiaTaskManagerTaskResponse
 	taskResponsesMu       sync.RWMutex
 }
 
 // NewAggregator creates a new Aggregator with the provided config.
 func NewAggregator(c *config.Config) (*Aggregator, error) {
-
 	avsReader, err := chainio.NewAvsReaderFromConfig(c)
 	if err != nil {
 		c.Logger.Error("Cannot create EthReader", "err", err)
@@ -143,8 +145,8 @@ func NewAggregator(c *config.Config) (*Aggregator, error) {
 		serverIpPortAddr:      c.AggregatorServerIpPortAddr,
 		avsWriter:             avsWriter,
 		blsAggregationService: blsAggregationService,
-		tasks:                 make(map[types.TaskIndex]cstaskmanager.IIncredibleSquaringTaskManagerTask),
-		taskResponses:         make(map[types.TaskIndex]map[sdktypes.TaskResponseDigest]cstaskmanager.IIncredibleSquaringTaskManagerTaskResponse),
+		tasks:                 make(map[types.TaskIndex]cstaskmanager.IMfssiaTaskManagerTask),
+		taskResponses:         make(map[types.TaskIndex]map[sdktypes.TaskResponseDigest]cstaskmanager.IMfssiaTaskManagerTaskResponse),
 	}, nil
 }
 
@@ -160,7 +162,7 @@ func (agg *Aggregator) Start(ctx context.Context) error {
 	taskNum := int64(0)
 	// ticker doesn't tick immediately, so we send the first task here
 	// see https://github.com/golang/go/issues/17601
-	_ = agg.sendNewTask(big.NewInt(taskNum))
+	_ = agg.sendNewTask(system1Value, system2Value, dkgValue)
 	taskNum++
 
 	for {
@@ -171,7 +173,7 @@ func (agg *Aggregator) Start(ctx context.Context) error {
 			agg.logger.Info("Received response from blsAggregationService", "blsAggServiceResp", blsAggServiceResp)
 			agg.sendAggregatedResponseToContract(blsAggServiceResp)
 		case <-ticker.C:
-			err := agg.sendNewTask(big.NewInt(taskNum))
+			err := agg.sendNewTask(system1Value, system2Value, dkgValue)
 			taskNum++
 			if err != nil {
 				// we log the errors inside sendNewTask() so here we just continue to the next task
@@ -224,12 +226,18 @@ func (agg *Aggregator) sendAggregatedResponseToContract(blsAggServiceResp blsagg
 
 // sendNewTask sends a new task to the task manager contract, and updates the Task dict struct
 // with the information of operators opted into quorum 0 at the block of task creation.
-func (agg *Aggregator) sendNewTask(numToSquare *big.Int) error {
-	agg.logger.Info("Aggregator sending new task", "numberToSquare", numToSquare)
+func (agg *Aggregator) sendNewTask(system1Value string, system2Value string, dkgValue string) error {
+	agg.logger.Info("Aggregator sending new task", "system 1 value", system1Value, "system 2 value", system2Value, "dkg value", dkgValue)
 	// Send number to square to the task manager contract
-	newTask, taskIndex, err := agg.avsWriter.SendNewTaskNumberToSquare(context.Background(), numToSquare, types.QUORUM_THRESHOLD_NUMERATOR, types.QUORUM_NUMBERS)
+	newTask, taskIndex, err := agg.avsWriter.SendNewTaskFailingSystem(
+		context.Background(),
+		system1Value,
+		system2Value,
+		dkgValue,
+		types.QUORUM_THRESHOLD_NUMERATOR,
+		types.QUORUM_NUMBERS)
 	if err != nil {
-		agg.logger.Error("Aggregator failed to send number to square", "err", err)
+		agg.logger.Error("Aggregator failed to send systems data", "err", err)
 		return err
 	}
 

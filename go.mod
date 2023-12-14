@@ -19,7 +19,6 @@ require (
 )
 
 require (
-	github.com/Layr-Labs/incredible-squaring-avs v0.0.0-20231121191832-9fb41ad4a7ba
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect

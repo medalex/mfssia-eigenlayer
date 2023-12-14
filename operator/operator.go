@@ -3,6 +3,8 @@ package operator
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -33,6 +35,10 @@ import (
 
 const AVS_NAME = "incredible-squaring"
 const SEM_VER = "0.0.1"
+
+const SYSTEM_1_URL = ""
+const SYSTEM_2_URL = ""
+const DKG_URL = ""
 
 type Operator struct {
 	config    types.NodeConfig
@@ -388,15 +394,89 @@ func (o *Operator) ProcessNewTaskCreatedLog(newTaskCreatedLog *cstaskmanager.Con
 		"QuorumThresholdPercentage", newTaskCreatedLog.Task.QuorumThresholdPercentage,
 	)
 
-	//TODO Add API calls here
-
-	//TODO Define which system is fault?
+	var system1 = GetSystem1()
+	var system2 = GetSystem2()
+	var dkg = GetDkg()
 	faultySystem := ""
+
+	if dkg != system1 && dkg == system2 {
+		faultySystem = "system1"
+	}
+
+	if dkg != system2 && dkg == system1 {
+		faultySystem = "system2"
+	}
+
+	if dkg != system1 && dkg != system2 {
+		faultySystem = "ALL"
+	}
+
 	taskResponse := &cstaskmanager.IMfssiaTaskManagerTaskResponse{
 		ReferenceTaskIndex: newTaskCreatedLog.TaskIndex,
 		FaultySystem:       faultySystem,
 	}
+
 	return taskResponse
+}
+
+func GetSystem1() string {
+	res, err := http.Get(SYSTEM_1_URL)
+	if err != nil {
+		fmt.Printf("error making http request: %s\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("client: got response!\n")
+	fmt.Printf("client: status code: %d\n", res.StatusCode)
+
+	resBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("client: could not read response body: %s\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("client: response body: %s\n", resBody)
+
+	return string(resBody)
+}
+
+func GetSystem2() string {
+	res, err := http.Get(SYSTEM_2_URL)
+	if err != nil {
+		fmt.Printf("error making http request: %s\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("client: got response!\n")
+	fmt.Printf("client: status code: %d\n", res.StatusCode)
+
+	resBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("client: could not read response body: %s\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("client: response body: %s\n", resBody)
+
+	return string(resBody)
+}
+
+func GetDkg() string {
+	res, err := http.Get(DKG_URL)
+	if err != nil {
+		fmt.Printf("error making http request: %s\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("client: got response!\n")
+	fmt.Printf("client: status code: %d\n", res.StatusCode)
+
+	resBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("client: could not read response body: %s\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("client: response body: %s\n", resBody)
+
+	return string(resBody)
 }
 
 func (o *Operator) SignTaskResponse(taskResponse *cstaskmanager.IMfssiaTaskManagerTaskResponse) (*aggregator.SignedTaskResponse, error) {

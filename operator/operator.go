@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -36,8 +37,7 @@ import (
 const AVS_NAME = "incredible-squaring"
 const SEM_VER = "0.0.1"
 
-const SYSTEM_1_URL = ""
-const SYSTEM_2_URL = ""
+const SYSTEM_URL = "http://ec2-44-213-31-19.compute-1.amazonaws.com:4000/v1/api/business-contract/{systemID}/system_1-hash"
 const DKG_URL = ""
 
 type Operator struct {
@@ -394,8 +394,8 @@ func (o *Operator) ProcessNewTaskCreatedLog(newTaskCreatedLog *cstaskmanager.Con
 		"QuorumThresholdPercentage", newTaskCreatedLog.Task.QuorumThresholdPercentage,
 	)
 
-	var system1 = GetSystem1()
-	var system2 = GetSystem2()
+	var system1 = GetSystem(newTaskCreatedLog.Task.System1Value)
+	var system2 = GetSystem(newTaskCreatedLog.Task.System2Value)
 	var dkg = GetDkg()
 	faultySystem := ""
 
@@ -419,28 +419,9 @@ func (o *Operator) ProcessNewTaskCreatedLog(newTaskCreatedLog *cstaskmanager.Con
 	return taskResponse
 }
 
-func GetSystem1() string {
-	res, err := http.Get(SYSTEM_1_URL)
-	if err != nil {
-		fmt.Printf("error making http request: %s\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Printf("client: got response!\n")
-	fmt.Printf("client: status code: %d\n", res.StatusCode)
-
-	resBody, err := io.ReadAll(res.Body)
-	if err != nil {
-		fmt.Printf("client: could not read response body: %s\n", err)
-		os.Exit(1)
-	}
-	fmt.Printf("client: response body: %s\n", resBody)
-
-	return string(resBody)
-}
-
-func GetSystem2() string {
-	res, err := http.Get(SYSTEM_2_URL)
+func GetSystem(systemId string) string {
+	url := strings.ReplaceAll(SYSTEM_URL, "{systemId}", systemId)
+	res, err := http.Get(url)
 	if err != nil {
 		fmt.Printf("error making http request: %s\n", err)
 		os.Exit(1)

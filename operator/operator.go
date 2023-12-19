@@ -37,8 +37,8 @@ import (
 const AVS_NAME = "incredible-squaring"
 const SEM_VER = "0.0.1"
 
-const SYSTEM_URL = "http://ec2-44-213-31-19.compute-1.amazonaws.com:4000/v1/api/business-contract/{systemID}/system_1-hash"
-const DKG_URL = ""
+const SYSTEM_URL = "http://ec2-44-213-31-19.compute-1.amazonaws.com:4000/v1/api/business-contract/{systemId}/system_1-hash"
+const DKG_URL = "but this works as well https://ec2-3-123-233-195.eu-central-1.compute.amazonaws.com/api/consensus/contractHash/{systemId}"
 
 type Operator struct {
 	config    types.NodeConfig
@@ -396,18 +396,20 @@ func (o *Operator) ProcessNewTaskCreatedLog(newTaskCreatedLog *cstaskmanager.Con
 
 	var system1 = GetSystem(newTaskCreatedLog.Task.System1Value)
 	var system2 = GetSystem(newTaskCreatedLog.Task.System2Value)
-	var dkg = GetDkg()
+	var dkgSystem1 = GetDkg(newTaskCreatedLog.Task.System1Value)
+	var dkgSystem2 = GetDkg(newTaskCreatedLog.Task.System2Value)
+
 	faultySystem := ""
 
-	if dkg != system1 && dkg == system2 {
+	if system1 != dkgSystem1 {
 		faultySystem = "system1"
 	}
 
-	if dkg != system2 && dkg == system1 {
+	if system2 != dkgSystem2 {
 		faultySystem = "system2"
 	}
 
-	if dkg != system1 && dkg != system2 {
+	if system1 != dkgSystem1 && system2 != dkgSystem2 {
 		faultySystem = "ALL"
 	}
 
@@ -440,8 +442,9 @@ func GetSystem(systemId string) string {
 	return string(resBody)
 }
 
-func GetDkg() string {
-	res, err := http.Get(DKG_URL)
+func GetDkg(systemId string) string {
+	url := strings.ReplaceAll(DKG_URL, "{systemId}", systemId)
+	res, err := http.Get(url)
 	if err != nil {
 		fmt.Printf("error making http request: %s\n", err)
 		os.Exit(1)

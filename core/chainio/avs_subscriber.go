@@ -30,7 +30,7 @@ type AvsSubscriber struct {
 
 func NewAvsSubscriberFromConfig(config *config.Config) (*AvsSubscriber, error) {
 	return NewAvsSubscriber(
-		config.IncredibleSquaringServiceManagerAddr,
+		config.MfssiaServiceManagerAddr,
 		config.BlsOperatorStateRetrieverAddr,
 		config.EthWsClient,
 		config.Logger,

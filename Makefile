@@ -72,7 +72,7 @@ send-fund: ## sends fund to the operator saved in tests/keys/test.ecdsa.key.json
 ____OFFCHAIN_SOFTWARE___: ## 
 start-aggregator: ## 
 	go run aggregator/cmd/main.go --config config-files/aggregator.yaml \
-		--credible-squaring-deployment ${DEPLOYMENT_FILES_DIR}/credible_squaring_avs_deployment_output.json \
+		--mfssia-deployment ${DEPLOYMENT_FILES_DIR}/mfssia_avs_deployment_output.json \
 		--shared-avs-contracts-deployment ${DEPLOYMENT_FILES_DIR}/shared_avs_contracts_deployment_output.json \
 		--ecdsa-private-key ${AGGREGATOR_ECDSA_PRIV_KEY} \
 		2>&1 | zap-pretty

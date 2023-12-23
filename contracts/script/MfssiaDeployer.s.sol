@@ -48,8 +48,8 @@ contract MfssiaDeployer is Script, Utils {
     StrategyBaseTVLLimits public erc20MockStrategy;
 
     // Credible Squaring contracts
-    ProxyAdmin public credibleSquaringProxyAdmin;
-    PauserRegistry public credibleSquaringPauserReg;
+    ProxyAdmin public mfssiaProxyAdmin;
+    PauserRegistry public mfssiaPauserReg;
 
     blsregcoord.BLSRegistryCoordinatorWithIndices public registryCoordinator;
     blsregcoord.IBLSRegistryCoordinatorWithIndices
@@ -64,12 +64,12 @@ contract MfssiaDeployer is Script, Utils {
     IStakeRegistry public stakeRegistry;
     IStakeRegistry public stakeRegistryImplementation;
 
-    MfssiaServiceManager public credibleSquaringServiceManager;
-    IServiceManager public credibleSquaringServiceManagerImplementation;
+    MfssiaServiceManager public mfssiaServiceManager;
+    IServiceManager public mfssiaServiceManagerImplementation;
 
-    MfssiaTaskManager public credibleSquaringTaskManager;
+    MfssiaTaskManager public mfssiaTaskManager;
     IMfssiaTaskManager
-        public credibleSquaringTaskManagerImplementation;
+        public mfssiaTaskManagerImplementation;
 
     function run() external {
         // Eigenlayer contracts
@@ -122,8 +122,8 @@ contract MfssiaDeployer is Script, Utils {
                 )
             );
 
-        address credibleSquaringCommunityMultisig = msg.sender;
-        address credibleSquaringPauser = msg.sender;
+        address mfssiaCommunityMultisig = msg.sender;
+        address mfssiaPauser = msg.sender;
 
         vm.startBroadcast();
         _deployErc20AndStrategyAndWhitelistStrategy(
@@ -132,7 +132,7 @@ contract MfssiaDeployer is Script, Utils {
             baseStrategyImplementation,
             strategyManager
         );
-        _deployCredibleSquaringContracts(
+        _deployMfssiaContracts(
             strategyManager,
             delegationManager,
             slasher,
@@ -173,14 +173,14 @@ contract MfssiaDeployer is Script, Utils {
         strategyManager.addStrategiesToDepositWhitelist(strats);
     }
 
-    function _deployCredibleSquaringContracts(
+    function _deployMfssiaContracts(
         IStrategyManager strategyManager,
         IDelegationManager delegationManager,
         ISlasher slasher,
         IStrategy strat,
         BLSPublicKeyCompendium pubkeyCompendium,
-        address credibleSquaringCommunityMultisig,
-        address credibleSquaringPauser
+        address mfssiaCommunityMultisig,
+        address mfssiaPauser
     ) internal {
         // Adding this as a temporary fix to make the rest of the script work with a single strategy
         // since it was originally written to work with an array of strategies
@@ -193,11 +193,11 @@ contract MfssiaDeployer is Script, Utils {
         // deploy pauser registry
         {
             address[] memory pausers = new address[](2);
-            pausers[0] = credibleSquaringPauser;
-            pausers[1] = credibleSquaringCommunityMultisig;
-            credibleSquaringPauserReg = new PauserRegistry(
+            pausers[0] = mfssiaPauser;
+            pausers[1] = mfssiaCommunityMultisig;
+            mfssiaPauserReg = new PauserRegistry(
                 pausers,
-                credibleSquaringCommunityMultisig
+                mfssiaCommunityMultisig
             );
         }
 
@@ -209,11 +209,11 @@ contract MfssiaDeployer is Script, Utils {
          * First, deploy upgradeable proxy contracts that **will point** to the implementations. Since the implementation contracts are
          * not yet deployed, we give these proxies an empty contract as the initial implementation, to act as if they have no code.
          */
-        credibleSquaringServiceManager = MfssiaServiceManager(
+        mfssiaServiceManager = MfssiaServiceManager(
             address(
                 new TransparentUpgradeableProxy(
                     address(emptyContract),
-                    address(credibleSquaringProxyAdmin),
+                    address(mfssiaProxyAdmin),
                     ""
                 )
             )
@@ -222,7 +222,7 @@ contract MfssiaDeployer is Script, Utils {
             address(
                 new TransparentUpgradeableProxy(
                     address(emptyContract),
-                    address(credibleSquaringProxyAdmin),
+                    address(mfssiaProxyAdmin),
                     ""
                 )
             )
@@ -231,7 +231,7 @@ contract MfssiaDeployer is Script, Utils {
             address(
                 new TransparentUpgradeableProxy(
                     address(emptyContract),
-                    address(credibleSquaringProxyAdmin),
+                    address(mfssiaProxyAdmin),
                     ""
                 )
             )
@@ -240,7 +240,7 @@ contract MfssiaDeployer is Script, Utils {
             address(
                 new TransparentUpgradeableProxy(
                     address(emptyContract),
-                    address(credibleSquaringProxyAdmin),
+                    address(mfssiaProxyAdmin),
                     ""
                 )
             )
@@ -249,7 +249,7 @@ contract MfssiaDeployer is Script, Utils {
             address(
                 new TransparentUpgradeableProxy(
                     address(emptyContract),
-                    address(credibleSquaringProxyAdmin),
+                    address(mfssiaProxyAdmin),
                     ""
                 )
             )
@@ -258,7 +258,7 @@ contract MfssiaDeployer is Script, Utils {
             address(
                 new TransparentUpgradeableProxy(
                     address(emptyContract),
-                    address(credibleSquaringProxyAdmin),
+                    address(mfssiaProxyAdmin),
                     ""
                 )
             )
@@ -269,7 +269,7 @@ contract MfssiaDeployer is Script, Utils {
             stakeRegistryImplementation = new StakeRegistry(
                 registryCoordinator,
                 strategyManager,
-                credibleSquaringServiceManager
+                mfssiaServiceManager
             );
 
             // set up a quorum with each strategy that needs to be set up
@@ -293,7 +293,7 @@ contract MfssiaDeployer is Script, Utils {
                     });
             }
 
-            credibleSquaringProxyAdmin.upgradeAndCall(
+            mfssiaProxyAdmin.upgradeAndCall(
                 TransparentUpgradeableProxy(payable(address(stakeRegistry))),
                 address(stakeRegistryImplementation),
                 abi.encodeWithSelector(
@@ -306,7 +306,7 @@ contract MfssiaDeployer is Script, Utils {
 
         registryCoordinatorImplementation = new blsregcoord.BLSRegistryCoordinatorWithIndices(
             slasher,
-            credibleSquaringServiceManager,
+            mfssiaServiceManager,
             blsregcoord.IStakeRegistry(address(stakeRegistry)),
             blsregcoord.IBLSPubkeyRegistry(address(blsPubkeyRegistry)),
             blsregcoord.IIndexRegistry(address(indexRegistry))
@@ -327,7 +327,7 @@ contract MfssiaDeployer is Script, Utils {
                         kickBIPsOfTotalStake: 100
                     });
             }
-            credibleSquaringProxyAdmin.upgradeAndCall(
+            mfssiaProxyAdmin.upgradeAndCall(
                 TransparentUpgradeableProxy(
                     payable(address(registryCoordinator))
                 ),
@@ -338,10 +338,10 @@ contract MfssiaDeployer is Script, Utils {
                         .initialize
                         .selector,
                     // we set churnApprover and ejector to communityMultisig because we don't need them
-                    credibleSquaringCommunityMultisig,
-                    credibleSquaringCommunityMultisig,
+                    mfssiaCommunityMultisig,
+                    mfssiaCommunityMultisig,
                     operatorSetParams,
-                    credibleSquaringPauserReg,
+                    mfssiaPauserReg,
                     // 0 initialPausedStatus means everything unpaused
                     0
                 )
@@ -353,51 +353,51 @@ contract MfssiaDeployer is Script, Utils {
             pubkeyCompendium
         );
 
-        credibleSquaringProxyAdmin.upgrade(
+        mfssiaProxyAdmin.upgrade(
             TransparentUpgradeableProxy(payable(address(blsPubkeyRegistry))),
             address(blsPubkeyRegistryImplementation)
         );
 
         indexRegistryImplementation = new IndexRegistry(registryCoordinator);
 
-        credibleSquaringProxyAdmin.upgrade(
+        mfssiaProxyAdmin.upgrade(
             TransparentUpgradeableProxy(payable(address(indexRegistry))),
             address(indexRegistryImplementation)
         );
 
-        credibleSquaringServiceManagerImplementation = new MfssiaServiceManager(
+        mfssiaServiceManagerImplementation = new MfssiaServiceManager(
             registryCoordinator,
             slasher,
-            credibleSquaringTaskManager
+            mfssiaTaskManager
         );
         // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
-        credibleSquaringProxyAdmin.upgradeAndCall(
+        mfssiaProxyAdmin.upgradeAndCall(
             TransparentUpgradeableProxy(
-                payable(address(credibleSquaringServiceManager))
+                payable(address(mfssiaServiceManager))
             ),
-            address(credibleSquaringServiceManagerImplementation),
+            address(mfssiaServiceManagerImplementation),
             abi.encodeWithSelector(
-                credibleSquaringServiceManager.initialize.selector,
-                credibleSquaringPauserReg,
-                credibleSquaringCommunityMultisig
+                mfssiaServiceManager.initialize.selector,
+                mfssiaPauserReg,
+                mfssiaCommunityMultisig
             )
         );
 
-        credibleSquaringTaskManagerImplementation = new MfssiaTaskManager(
+        mfssiaTaskManagerImplementation = new MfssiaTaskManager(
             registryCoordinator,
             TASK_RESPONSE_WINDOW_BLOCK
         );
 
         // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
-        credibleSquaringProxyAdmin.upgradeAndCall(
+        mfssiaProxyAdmin.upgradeAndCall(
             TransparentUpgradeableProxy(
-                payable(address(credibleSquaringTaskManager))
+                payable(address(mfssiaTaskManager))
             ),
-            address(credibleSquaringTaskManagerImplementation),
+            address(mfssiaTaskManagerImplementation),
             abi.encodeWithSelector(
-                credibleSquaringTaskManager.initialize.selector,
-                credibleSquaringPauserReg,
-                credibleSquaringCommunityMultisig,
+                mfssiaTaskManager.initialize.selector,
+                mfssiaPauserReg,
+                mfssiaCommunityMultisig,
                 AGGREGATOR_ADDR,
                 TASK_GENERATOR_ADDR,
                 QUORUM_THRESHOLD_PERCENTAGE
@@ -420,23 +420,23 @@ contract MfssiaDeployer is Script, Utils {
         );
         vm.serializeAddress(
             deployed_addresses,
-            "credibleSquaringServiceManager",
-            address(credibleSquaringServiceManager)
+            "mfssiaServiceManager",
+            address(mfssiaServiceManager)
         );
         vm.serializeAddress(
             deployed_addresses,
-            "credibleSquaringServiceManagerImplementation",
-            address(credibleSquaringServiceManagerImplementation)
+            "mfssiaServiceManagerImplementation",
+            address(mfssiaServiceManagerImplementation)
         );
         vm.serializeAddress(
             deployed_addresses,
-            "credibleSquaringTaskManager",
-            address(credibleSquaringTaskManager)
+            "mfssiaTaskManager",
+            address(mfssiaTaskManager)
         );
         vm.serializeAddress(
             deployed_addresses,
-            "credibleSquaringTaskManagerImplementation",
-            address(credibleSquaringTaskManagerImplementation)
+            "mfssiaTaskManagerImplementation",
+            address(mfssiaTaskManagerImplementation)
         );
         vm.serializeAddress(
             deployed_addresses,
@@ -456,6 +456,6 @@ contract MfssiaDeployer is Script, Utils {
             deployed_addresses_output
         );
 
-        writeOutput(finalJson, "credible_squaring_avs_deployment_output");
+        writeOutput(finalJson, "mfssia_avs_deployment_output");
     }
 }

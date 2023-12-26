@@ -34,11 +34,11 @@ import (
 	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
 )
 
-const AVS_NAME = "incredible-squaring"
+const AVS_NAME = "mfssia"
 const SEM_VER = "0.0.1"
 
 const SYSTEM_URL = "http://ec2-44-213-31-19.compute-1.amazonaws.com:4000/v1/api/business-contract/{systemId}/system_1-hash"
-const DKG_URL = "but this works as well https://ec2-3-123-233-195.eu-central-1.compute.amazonaws.com/api/consensus/contractHash/{systemId}"
+const DKG_URL = "https://ec2-3-123-233-195.eu-central-1.compute.amazonaws.com/api/consensus/contractHash/{systemId}"
 
 type Operator struct {
 	config    types.NodeConfig

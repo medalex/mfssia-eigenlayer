@@ -34,7 +34,7 @@ func NewAvsServiceBindings(serviceManagerAddr, blsOperatorStateRetrieverAddr get
 	}
 	contractTaskManager, err := cstaskmanager.NewContractMfssiaTaskManager(taskManagerAddr, ethclient)
 	if err != nil {
-		logger.Error("Failed to fetch IIncredibleSquaringTaskManager contract", "err", err)
+		logger.Error("Failed to fetch IMfssiaTaskManager contract", "err", err)
 		return nil, err
 	}
 

@@ -30,7 +30,7 @@ import "forge-std/StdJson.sol";
 import "forge-std/console.sol";
 
 // # To deploy and verify our contract
-// forge script script/CredibleSquaringDeployer.s.sol:CredibleSquaringDeployer --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
+// forge script script/MfssiaDeployer.s.sol:MfssiaDeployer --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
 contract MfssiaDeployer is Script, Utils {
     // DEPLOYMENT CONSTANTS
     uint256 public constant QUORUM_THRESHOLD_PERCENTAGE = 100;
@@ -47,7 +47,7 @@ contract MfssiaDeployer is Script, Utils {
     ERC20Mock public erc20Mock;
     StrategyBaseTVLLimits public erc20MockStrategy;
 
-    // Credible Squaring contracts
+    // Mfssia contracts
     ProxyAdmin public mfssiaProxyAdmin;
     PauserRegistry public mfssiaPauserReg;
 
@@ -138,8 +138,8 @@ contract MfssiaDeployer is Script, Utils {
             slasher,
             erc20MockStrategy,
             pubkeyCompendium,
-            credibleSquaringCommunityMultisig,
-            credibleSquaringPauser
+            mfssiaCommunityMultisig,
+            mfssiaPauser
         );
         vm.stopBroadcast();
     }
@@ -188,7 +188,7 @@ contract MfssiaDeployer is Script, Utils {
         uint numStrategies = deployedStrategyArray.length;
 
         // deploy proxy admin for ability to upgrade proxy contracts
-        credibleSquaringProxyAdmin = new ProxyAdmin();
+        mfssiaProxyAdmin = new ProxyAdmin();
 
         // deploy pauser registry
         {
@@ -218,7 +218,7 @@ contract MfssiaDeployer is Script, Utils {
                 )
             )
         );
-        credibleSquaringTaskManager = MfssiaTaskManager(
+        mfssiaTaskManager = MfssiaTaskManager(
             address(
                 new TransparentUpgradeableProxy(
                     address(emptyContract),

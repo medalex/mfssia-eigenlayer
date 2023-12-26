@@ -20,8 +20,8 @@ func AbiEncodeTaskResponse(h *cstaskmanager.IMfssiaTaskManagerTaskResponse) ([]b
 			Type: "uint32",
 		},
 		{
-			Name: "numberSquared",
-			Type: "uint256",
+			Name: "faultySystem",
+			Type: "string",
 		},
 	})
 	if err != nil {

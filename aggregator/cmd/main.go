@@ -27,7 +27,7 @@ func main() {
 	app.Version = fmt.Sprintf("%s-%s-%s", Version, GitCommit, GitDate)
 	app.Name = "mfssia-aggregator"
 	app.Usage = "Credible MFSSIA Aggregator"
-	app.Description = "Service that sends number to be credibly squared by operator nodes."
+	app.Description = "Service that sends sytem 1 and 2 Ids to be credibly checked by operator nodes."
 
 	app.Action = aggregatorMain
 	err := app.Run(os.Args)

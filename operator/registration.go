@@ -120,7 +120,7 @@ func (o *Operator) RegisterBLSPublicKey() error {
 // Registration specific functions
 func (o *Operator) RegisterOperatorWithAvs() error {
 
-	// 1. opt operator into getting slashed by credible squaring service manager
+	// 1. opt operator into getting slashed by mfssia service manager
 	err := o.optOperatorIntoSlashing()
 	if err != nil {
 		return err

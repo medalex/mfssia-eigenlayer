@@ -18,7 +18,7 @@ import (
 	sdkutils "github.com/Layr-Labs/eigensdk-go/utils"
 )
 
-// Config contains all of the configuration information for a credible squaring aggregators and challengers.
+// Config contains all of the configuration information for a mfssia aggregators and challengers.
 // Operators use a separate config. (see config-files/operator.anvil.yaml)
 type Config struct {
 	EcdsaPrivateKey           *ecdsa.PrivateKey
@@ -50,7 +50,7 @@ type ConfigRaw struct {
 	BLSPubkeyCompendiumAddr    string              `yaml:"bls_public_key_compendium_address"`
 }
 
-// These are read from CredibleSquaringDeploymentFileFlag
+// These are read from MfssiaDeploymentFileFlag
 type MfssiaDeploymentRaw struct {
 	Addresses MfssiaContractsRaw `json:"addresses"`
 }
@@ -176,7 +176,7 @@ var (
 	MfssiaDeploymentFileFlag = cli.StringFlag{
 		Name:     "mfssia-deployment",
 		Required: true,
-		Usage:    "Load credible squaring contract addresses from `FILE`",
+		Usage:    "Load mfssia contract addresses from `FILE`",
 	}
 	SharedAvsContractsDeploymentFileFlag = cli.StringFlag{
 		Name:     "shared-avs-contracts-deployment",

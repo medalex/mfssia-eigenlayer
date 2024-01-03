@@ -49,7 +49,7 @@ interface IMfssiaTaskManager {
     }
 
     // FUNCTIONS
-    // NOTE: this function creates new task.
+    // NOTE: this function creates new task from aggregator.
     function createNewTask(
         string calldata system1Value,
         string calldata system2Value,

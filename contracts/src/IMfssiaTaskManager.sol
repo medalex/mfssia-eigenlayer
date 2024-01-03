@@ -7,22 +7,13 @@ interface IMfssiaTaskManager {
     // EVENTS
     event NewTaskCreated(uint32 indexed taskIndex, Task task);
 
-    event TaskResponded(
-        TaskResponse taskResponse,
-        TaskResponseMetadata taskResponseMetadata
-    );
+    event TaskResponded(TaskResponse taskResponse, TaskResponseMetadata taskResponseMetadata);
 
     event TaskCompleted(uint32 indexed taskIndex);
 
-    event TaskChallengedSuccessfully(
-        uint32 indexed taskIndex,
-        address indexed challenger
-    );
+    event TaskChallengedSuccessfully(uint32 indexed taskIndex, address indexed challenger);
 
-    event TaskChallengedUnsuccessfully(
-        uint32 indexed taskIndex,
-        address indexed challenger
-    );
+    event TaskChallengedUnsuccessfully(uint32 indexed taskIndex, address indexed challenger);
 
     // STRUCTS
     struct Task {
@@ -62,7 +53,7 @@ interface IMfssiaTaskManager {
     function createNewTask(
         string calldata system1Value,
         string calldata system2Value,
-        string calldata dkgValue,        
+        string calldata dkgValue,
         uint32 quorumThresholdPercentage,
         bytes calldata quorumNumbers
     ) external;

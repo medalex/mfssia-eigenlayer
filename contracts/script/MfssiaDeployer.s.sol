@@ -12,9 +12,14 @@ import "@eigenlayer/test/mocks/EmptyContract.sol";
 
 import {BLSPublicKeyCompendium} from "@eigenlayer-middleware/src/BLSPublicKeyCompendium.sol";
 import "@eigenlayer-middleware/src/BLSRegistryCoordinatorWithIndices.sol" as blsregcoord;
-import {BLSPubkeyRegistry, IBLSPubkeyRegistry} from "@eigenlayer-middleware/src/BLSPubkeyRegistry.sol";
-import {IndexRegistry, IIndexRegistry} from "@eigenlayer-middleware/src/IndexRegistry.sol";
-import {StakeRegistry, IStakeRegistry} from "@eigenlayer-middleware/src/StakeRegistry.sol";
+import {BLSPubkeyRegistry} from "@eigenlayer-middleware/src/BLSPubkeyRegistry.sol";
+import {IBLSPubkeyRegistry} from "@eigenlayer-middleware/src/interfaces/IBLSPubkeyRegistry.sol";
+
+import {IndexRegistry} from "@eigenlayer-middleware/src/IndexRegistry.sol";
+import {IIndexRegistry} from "@eigenlayer-middleware/src/interfaces/IIndexRegistry.sol";
+
+import {StakeRegistry} from "@eigenlayer-middleware/src/StakeRegistry.sol";
+import {IStakeRegistry} from "@eigenlayer-middleware/src/interfaces/IStakeRegistry.sol";
 import {IVoteWeigher} from "@eigenlayer-middleware/src/interfaces/IVoteWeigher.sol";
 
 import {MfssiaServiceManager, IServiceManager} from "../src/MfssiaServiceManager.sol";

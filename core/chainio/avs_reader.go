@@ -40,7 +40,7 @@ var _ AvsReaderer = (*AvsReader)(nil)
 
 func NewAvsReaderFromConfig(c *config.Config) (*AvsReader, error) {
 
-	avsContractBindings, err := NewAvsServiceBindings(c.IncredibleSquaringServiceManagerAddr, c.BlsOperatorStateRetrieverAddr, c.EthHttpClient, c.Logger)
+	avsContractBindings, err := NewAvsServiceBindings(c.MfssiaServiceManagerAddr, c.BlsOperatorStateRetrieverAddr, c.EthHttpClient, c.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func NewAvsReaderFromConfig(c *config.Config) (*AvsReader, error) {
 	if err != nil {
 		return nil, err
 	}
-	avsServiceBindings, err := NewAvsServiceBindings(c.IncredibleSquaringServiceManagerAddr, c.BlsOperatorStateRetrieverAddr, c.EthHttpClient, c.Logger)
+	avsServiceBindings, err := NewAvsServiceBindings(c.MfssiaServiceManagerAddr, c.BlsOperatorStateRetrieverAddr, c.EthHttpClient, c.Logger)
 	if err != nil {
 		return nil, err
 	}

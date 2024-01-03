@@ -30,7 +30,7 @@ import "forge-std/StdJson.sol";
 import "forge-std/console.sol";
 
 // # To deploy and verify our contract
-// forge script script/CredibleSquaringDeployer.s.sol:CredibleSquaringDeployer --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
+// forge script script/MfssiaDeployer.s.sol:MfssiaDeployer --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
 contract MfssiaDeployer is Script, Utils {
     // DEPLOYMENT CONSTANTS
     uint256 public constant QUORUM_THRESHOLD_PERCENTAGE = 100;
@@ -45,9 +45,9 @@ contract MfssiaDeployer is Script, Utils {
     ERC20Mock public erc20Mock;
     StrategyBaseTVLLimits public erc20MockStrategy;
 
-    // Credible Squaring contracts
-    ProxyAdmin public credibleSquaringProxyAdmin;
-    PauserRegistry public credibleSquaringPauserReg;
+    // Mfssia contracts
+    ProxyAdmin public mfssiaProxyAdmin;
+    PauserRegistry public mfssiaPauserReg;
 
     blsregcoord.BLSRegistryCoordinatorWithIndices public registryCoordinator;
     blsregcoord.IBLSRegistryCoordinatorWithIndices public registryCoordinatorImplementation;
@@ -61,8 +61,8 @@ contract MfssiaDeployer is Script, Utils {
     IStakeRegistry public stakeRegistry;
     IStakeRegistry public stakeRegistryImplementation;
 
-    MfssiaServiceManager public credibleSquaringServiceManager;
-    IServiceManager public credibleSquaringServiceManagerImplementation;
+    MfssiaServiceManager public mfssiaServiceManager;
+    IServiceManager public mfssiaServiceManagerImplementation;
 
     MfssiaTaskManager public credibleSquaringTaskManager;
     IMfssiaTaskManager public credibleSquaringTaskManagerImplementation;
@@ -86,21 +86,21 @@ contract MfssiaDeployer is Script, Utils {
             stdJson.readAddress(eigenlayerDeployedContracts, ".addresses.baseStrategyImplementation")
         );
 
-        address credibleSquaringCommunityMultisig = msg.sender;
-        address credibleSquaringPauser = msg.sender;
+        address mfssiaCommunityMultisig = msg.sender;
+        address mfssiaPauser = msg.sender;
 
         vm.startBroadcast();
         _deployErc20AndStrategyAndWhitelistStrategy(
             eigenLayerProxyAdmin, eigenLayerPauserReg, baseStrategyImplementation, strategyManager
         );
-        _deployCredibleSquaringContracts(
+        _deployMfssiaContracts(
             strategyManager,
             delegationManager,
             slasher,
             erc20MockStrategy,
             pubkeyCompendium,
-            credibleSquaringCommunityMultisig,
-            credibleSquaringPauser
+            mfssiaCommunityMultisig,
+            mfssiaPauser
         );
         vm.stopBroadcast();
     }
@@ -134,14 +134,14 @@ contract MfssiaDeployer is Script, Utils {
         strategyManager.addStrategiesToDepositWhitelist(strats);
     }
 
-    function _deployCredibleSquaringContracts(
+    function _deployMfssiaContracts(
         IStrategyManager strategyManager,
         IDelegationManager delegationManager,
         ISlasher slasher,
         IStrategy strat,
         BLSPublicKeyCompendium pubkeyCompendium,
-        address credibleSquaringCommunityMultisig,
-        address credibleSquaringPauser
+        address mfssiaCommunityMultisig,
+        address mfssiaPauser
     ) internal {
         // Adding this as a temporary fix to make the rest of the script work with a single strategy
         // since it was originally written to work with an array of strategies
@@ -149,7 +149,7 @@ contract MfssiaDeployer is Script, Utils {
         uint256 numStrategies = deployedStrategyArray.length;
 
         // deploy proxy admin for ability to upgrade proxy contracts
-        credibleSquaringProxyAdmin = new ProxyAdmin();
+        mfssiaProxyAdmin = new ProxyAdmin();
 
         // deploy pauser registry
         {
@@ -207,7 +207,7 @@ contract MfssiaDeployer is Script, Utils {
                 });
             }
 
-            credibleSquaringProxyAdmin.upgradeAndCall(
+            mfssiaProxyAdmin.upgradeAndCall(
                 TransparentUpgradeableProxy(payable(address(stakeRegistry))),
                 address(stakeRegistryImplementation),
                 abi.encodeWithSelector(
@@ -218,7 +218,7 @@ contract MfssiaDeployer is Script, Utils {
 
         registryCoordinatorImplementation = new blsregcoord.BLSRegistryCoordinatorWithIndices(
             slasher,
-            credibleSquaringServiceManager,
+            mfssiaServiceManager,
             blsregcoord.IStakeRegistry(address(stakeRegistry)),
             blsregcoord.IBLSPubkeyRegistry(address(blsPubkeyRegistry)),
             blsregcoord.IIndexRegistry(address(indexRegistry))
@@ -241,10 +241,10 @@ contract MfssiaDeployer is Script, Utils {
                 abi.encodeWithSelector(
                     blsregcoord.BLSRegistryCoordinatorWithIndices.initialize.selector,
                     // we set churnApprover and ejector to communityMultisig because we don't need them
-                    credibleSquaringCommunityMultisig,
-                    credibleSquaringCommunityMultisig,
+                    mfssiaCommunityMultisig,
+                    mfssiaCommunityMultisig,
                     operatorSetParams,
-                    credibleSquaringPauserReg,
+                    mfssiaPauserReg,
                     // 0 initialPausedStatus means everything unpaused
                     0
                 )
@@ -270,9 +270,9 @@ contract MfssiaDeployer is Script, Utils {
             TransparentUpgradeableProxy(payable(address(credibleSquaringServiceManager))),
             address(credibleSquaringServiceManagerImplementation),
             abi.encodeWithSelector(
-                credibleSquaringServiceManager.initialize.selector,
-                credibleSquaringPauserReg,
-                credibleSquaringCommunityMultisig
+                mfssiaServiceManager.initialize.selector,
+                mfssiaPauserReg,
+                mfssiaCommunityMultisig
             )
         );
 
@@ -284,9 +284,9 @@ contract MfssiaDeployer is Script, Utils {
             TransparentUpgradeableProxy(payable(address(credibleSquaringTaskManager))),
             address(credibleSquaringTaskManagerImplementation),
             abi.encodeWithSelector(
-                credibleSquaringTaskManager.initialize.selector,
-                credibleSquaringPauserReg,
-                credibleSquaringCommunityMultisig,
+                mfssiaTaskManager.initialize.selector,
+                mfssiaPauserReg,
+                mfssiaCommunityMultisig,
                 AGGREGATOR_ADDR,
                 TASK_GENERATOR_ADDR,
                 QUORUM_THRESHOLD_PERCENTAGE
@@ -304,14 +304,14 @@ contract MfssiaDeployer is Script, Utils {
         );
         vm.serializeAddress(
             deployed_addresses,
-            "credibleSquaringServiceManagerImplementation",
-            address(credibleSquaringServiceManagerImplementation)
+            "mfssiaServiceManagerImplementation",
+            address(mfssiaServiceManagerImplementation)
         );
         vm.serializeAddress(deployed_addresses, "credibleSquaringTaskManager", address(credibleSquaringTaskManager));
         vm.serializeAddress(
             deployed_addresses,
-            "credibleSquaringTaskManagerImplementation",
-            address(credibleSquaringTaskManagerImplementation)
+            "mfssiaTaskManagerImplementation",
+            address(mfssiaTaskManagerImplementation)
         );
         vm.serializeAddress(deployed_addresses, "registryCoordinator", address(registryCoordinator));
         string memory deployed_addresses_output = vm.serializeAddress(
@@ -321,6 +321,6 @@ contract MfssiaDeployer is Script, Utils {
         // serialize all the data
         string memory finalJson = vm.serializeString(parent_object, deployed_addresses, deployed_addresses_output);
 
-        writeOutput(finalJson, "credible_squaring_avs_deployment_output");
+        writeOutput(finalJson, "mfssia_avs_deployment_output");
     }
 }

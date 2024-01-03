@@ -228,7 +228,7 @@ func (agg *Aggregator) sendAggregatedResponseToContract(blsAggServiceResp blsagg
 // with the information of operators opted into quorum 0 at the block of task creation.
 func (agg *Aggregator) sendNewTask(system1Value string, system2Value string, dkgValue string) error {
 	agg.logger.Info("Aggregator sending new task", "system 1 value", system1Value, "system 2 value", system2Value, "dkg value", dkgValue)
-	// Send number to square to the task manager contract
+	// Send system 1 and 2 Ids to the task manager contract
 	newTask, taskIndex, err := agg.avsWriter.SendNewTaskFailingSystem(
 		context.Background(),
 		system1Value,

@@ -6,7 +6,7 @@ import "./IMfssiaTaskManager.sol";
 import "@eigenlayer-middleware/src/ServiceManagerBase.sol";
 
 /**
- * @title Primary entrypoint for procuring services from IncredibleSquaring.
+ * @title Primary entrypoint for procuring services from Mfssia.
  * @author Layr Labs, Inc.
  */
 contract MfssiaServiceManager is ServiceManagerBase {

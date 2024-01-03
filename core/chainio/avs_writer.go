@@ -55,7 +55,7 @@ type AvsWriter struct {
 var _ AvsWriterer = (*AvsWriter)(nil)
 
 func NewAvsWriterFromConfig(c *config.Config) (*AvsWriter, error) {
-	return NewAvsWriter(c.Signer, c.IncredibleSquaringServiceManagerAddr, c.BlsOperatorStateRetrieverAddr, c.EthHttpClient, c.Logger)
+	return NewAvsWriter(c.Signer, c.MfssiaServiceManagerAddr, c.BlsOperatorStateRetrieverAddr, c.EthHttpClient, c.Logger)
 }
 
 func NewAvsWriter(signer signer.Signer, serviceManagerAddr, blsOperatorStateRetrieverAddr gethcommon.Address, ethHttpClient eth.EthClient, logger logging.Logger) (*AvsWriter, error) {

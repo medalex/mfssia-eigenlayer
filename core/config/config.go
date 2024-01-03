@@ -18,7 +18,7 @@ import (
 	sdkutils "github.com/Layr-Labs/eigensdk-go/utils"
 )
 
-// Config contains all of the configuration information for a credible squaring aggregators and challengers.
+// Config contains all of the configuration information for a mfssia aggregators and challengers.
 // Operators use a separate config. (see config-files/operator.anvil.yaml)
 type Config struct {
 	EcdsaPrivateKey           *ecdsa.PrivateKey
@@ -27,17 +27,17 @@ type Config struct {
 	EigenMetricsIpPortAddress string
 	// we need the url for the eigensdk currently... eventually standardize api so as to
 	// only take an ethclient or an rpcUrl (and build the ethclient at each constructor site)
-	EthRpcUrl                            string
-	EthHttpClient                        eth.EthClient
-	EthWsClient                          eth.EthClient
-	BlsOperatorStateRetrieverAddr        common.Address
-	IncredibleSquaringServiceManagerAddr common.Address
-	BlsPublicKeyCompendiumAddress        common.Address
-	SlasherAddr                          common.Address
-	AggregatorServerIpPortAddr           string
-	RegisterOperatorOnStartup            bool
-	Signer                               signer.Signer
-	OperatorAddress                      common.Address
+	EthRpcUrl                     string
+	EthHttpClient                 eth.EthClient
+	EthWsClient                   eth.EthClient
+	BlsOperatorStateRetrieverAddr common.Address
+	MfssiaServiceManagerAddr      common.Address
+	BlsPublicKeyCompendiumAddress common.Address
+	SlasherAddr                   common.Address
+	AggregatorServerIpPortAddr    string
+	RegisterOperatorOnStartup     bool
+	Signer                        signer.Signer
+	OperatorAddress               common.Address
 }
 
 // These are read from ConfigFileFlag
@@ -50,12 +50,12 @@ type ConfigRaw struct {
 	BLSPubkeyCompendiumAddr    string              `yaml:"bls_public_key_compendium_address"`
 }
 
-// These are read from CredibleSquaringDeploymentFileFlag
-type CredibleSquaringDeploymentRaw struct {
-	Addresses CredibleSquaringContractsRaw `json:"addresses"`
+// These are read from MfssiaDeploymentFileFlag
+type MfssiaDeploymentRaw struct {
+	Addresses MfssiaContractsRaw `json:"addresses"`
 }
-type CredibleSquaringContractsRaw struct {
-	IncredibleSquaringServiceManagerAddr string `json:"credibleSquaringServiceManager"`
+type MfssiaContractsRaw struct {
+	MfssiaServiceManagerAddr string `json:"mfssiaServiceManager"`
 }
 
 // BlsOperatorStateRetriever and BlsPublicKeyCompendium are deployed separately, since they are
@@ -78,12 +78,12 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 		sdkutils.ReadYamlConfig(configFilePath, &configRaw)
 	}
 
-	var credibleSquaringDeploymentRaw CredibleSquaringDeploymentRaw
-	credibleSquaringDeploymentFilePath := ctx.GlobalString(CredibleSquaringDeploymentFileFlag.Name)
-	if _, err := os.Stat(credibleSquaringDeploymentFilePath); errors.Is(err, os.ErrNotExist) {
-		panic("Path " + credibleSquaringDeploymentFilePath + " does not exist")
+	var mfssiaDeploymentRaw MfssiaDeploymentRaw
+	mfssiaDeploymentFilePath := ctx.GlobalString(MfssiaDeploymentFileFlag.Name)
+	if _, err := os.Stat(mfssiaDeploymentFilePath); errors.Is(err, os.ErrNotExist) {
+		panic("Path " + mfssiaDeploymentFilePath + " does not exist")
 	}
-	sdkutils.ReadJsonConfig(credibleSquaringDeploymentFilePath, &credibleSquaringDeploymentRaw)
+	sdkutils.ReadJsonConfig(mfssiaDeploymentFilePath, &mfssiaDeploymentRaw)
 
 	var sharedAvsContractsDeploymentRaw SharedAvsContractsRaw
 	sharedAvsContractsDeploymentFilePath := ctx.GlobalString(SharedAvsContractsDeploymentFileFlag.Name)
@@ -138,19 +138,19 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 	}
 
 	config := &Config{
-		EcdsaPrivateKey:                      ecdsaPrivateKey,
-		Logger:                               logger,
-		EthRpcUrl:                            configRaw.EthRpcUrl,
-		EthHttpClient:                        ethRpcClient,
-		EthWsClient:                          ethWsClient,
-		BlsOperatorStateRetrieverAddr:        common.HexToAddress(sharedAvsContractsDeploymentRaw.BlsOperatorStateRetrieverAddr),
-		IncredibleSquaringServiceManagerAddr: common.HexToAddress(credibleSquaringDeploymentRaw.Addresses.IncredibleSquaringServiceManagerAddr),
-		SlasherAddr:                          common.HexToAddress(""),
-		AggregatorServerIpPortAddr:           configRaw.AggregatorServerIpPortAddr,
-		RegisterOperatorOnStartup:            configRaw.RegisterOperatorOnStartup,
-		Signer:                               privateKeySigner,
-		OperatorAddress:                      operatorAddr,
-		BlsPublicKeyCompendiumAddress:        common.HexToAddress(configRaw.BLSPubkeyCompendiumAddr),
+		EcdsaPrivateKey:               ecdsaPrivateKey,
+		Logger:                        logger,
+		EthRpcUrl:                     configRaw.EthRpcUrl,
+		EthHttpClient:                 ethRpcClient,
+		EthWsClient:                   ethWsClient,
+		BlsOperatorStateRetrieverAddr: common.HexToAddress(sharedAvsContractsDeploymentRaw.BlsOperatorStateRetrieverAddr),
+		MfssiaServiceManagerAddr:      common.HexToAddress(mfssiaDeploymentRaw.Addresses.MfssiaServiceManagerAddr),
+		SlasherAddr:                   common.HexToAddress(""),
+		AggregatorServerIpPortAddr:    configRaw.AggregatorServerIpPortAddr,
+		RegisterOperatorOnStartup:     configRaw.RegisterOperatorOnStartup,
+		Signer:                        privateKeySigner,
+		OperatorAddress:               operatorAddr,
+		BlsPublicKeyCompendiumAddress: common.HexToAddress(configRaw.BLSPubkeyCompendiumAddr),
 	}
 	config.validate()
 	return config, nil
@@ -161,8 +161,8 @@ func (c *Config) validate() {
 	if c.BlsOperatorStateRetrieverAddr == common.HexToAddress("") {
 		panic("Config: BLSOperatorStateRetrieverAddr is required")
 	}
-	if c.IncredibleSquaringServiceManagerAddr == common.HexToAddress("") {
-		panic("Config: IncredibleSquaringServiceManagerAddr is required")
+	if c.MfssiaServiceManagerAddr == common.HexToAddress("") {
+		panic("Config: MfssiaServiceManagerAddr is required")
 	}
 }
 
@@ -173,10 +173,10 @@ var (
 		Required: true,
 		Usage:    "Load configuration from `FILE`",
 	}
-	CredibleSquaringDeploymentFileFlag = cli.StringFlag{
-		Name:     "credible-squaring-deployment",
+	MfssiaDeploymentFileFlag = cli.StringFlag{
+		Name:     "mfssia-deployment",
 		Required: true,
-		Usage:    "Load credible squaring contract addresses from `FILE`",
+		Usage:    "Load mfssia contract addresses from `FILE`",
 	}
 	SharedAvsContractsDeploymentFileFlag = cli.StringFlag{
 		Name:     "shared-avs-contracts-deployment",
@@ -194,7 +194,7 @@ var (
 
 var requiredFlags = []cli.Flag{
 	ConfigFileFlag,
-	CredibleSquaringDeploymentFileFlag,
+	MfssiaDeploymentFileFlag,
 	SharedAvsContractsDeploymentFileFlag,
 	EcdsaPrivateKeyFlag,
 }

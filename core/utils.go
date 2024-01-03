@@ -9,19 +9,19 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-// this hardcodes abi.encode() for cstaskmanager.IIncredibleSquaringTaskManagerTaskResponse
+// this hardcodes abi.encode() for cstaskmanager.IMfssiaTaskManagerTaskResponse
 // unclear why abigen doesn't provide this out of the box...
 func AbiEncodeTaskResponse(h *cstaskmanager.IMfssiaTaskManagerTaskResponse) ([]byte, error) {
 
-	// The order here has to match the field ordering of cstaskmanager.IIncredibleSquaringTaskManagerTaskResponse
+	// The order here has to match the field ordering of cstaskmanager.IMfssiaTaskManagerTaskResponse
 	taskResponseType, err := abi.NewType("tuple", "", []abi.ArgumentMarshaling{
 		{
 			Name: "referenceTaskIndex",
 			Type: "uint32",
 		},
 		{
-			Name: "numberSquared",
-			Type: "uint256",
+			Name: "faultySystem",
+			Type: "string",
 		},
 	})
 	if err != nil {

@@ -69,8 +69,8 @@ contract MfssiaDeployer is Script, Utils {
     MfssiaServiceManager public mfssiaServiceManager;
     IServiceManager public mfssiaServiceManagerImplementation;
 
-    MfssiaTaskManager public credibleSquaringTaskManager;
-    IMfssiaTaskManager public credibleSquaringTaskManagerImplementation;
+    MfssiaTaskManager public mfssiaTaskManager;
+    IMfssiaTaskManager public mfssiaTaskManagerImplementation;
 
     function run() external {
         // Eigenlayer contracts
@@ -159,9 +159,9 @@ contract MfssiaDeployer is Script, Utils {
         // deploy pauser registry
         {
             address[] memory pausers = new address[](2);
-            pausers[0] = credibleSquaringPauser;
-            pausers[1] = credibleSquaringCommunityMultisig;
-            credibleSquaringPauserReg = new PauserRegistry(pausers, credibleSquaringCommunityMultisig);
+            pausers[0] = mfssiaPauser;
+            pausers[1] = mfssiaCommunityMultisig;
+            mfssiaPauserReg = new PauserRegistry(pausers, mfssiaCommunityMultisig);
         }
 
         EmptyContract emptyContract = new EmptyContract();
@@ -172,29 +172,29 @@ contract MfssiaDeployer is Script, Utils {
          * First, deploy upgradeable proxy contracts that **will point** to the implementations. Since the implementation contracts are
          * not yet deployed, we give these proxies an empty contract as the initial implementation, to act as if they have no code.
          */
-        credibleSquaringServiceManager = MfssiaServiceManager(
-            address(new TransparentUpgradeableProxy(address(emptyContract), address(credibleSquaringProxyAdmin), ""))
+        mfssiaServiceManager = MfssiaServiceManager(
+            address(new TransparentUpgradeableProxy(address(emptyContract), address(mfssiaProxyAdmin), ""))
         );
-        credibleSquaringTaskManager = MfssiaTaskManager(
-            address(new TransparentUpgradeableProxy(address(emptyContract), address(credibleSquaringProxyAdmin), ""))
+        mfssiaTaskManager = MfssiaTaskManager(
+            address(new TransparentUpgradeableProxy(address(emptyContract), address(mfssiaProxyAdmin), ""))
         );
         registryCoordinator = blsregcoord.BLSRegistryCoordinatorWithIndices(
-            address(new TransparentUpgradeableProxy(address(emptyContract), address(credibleSquaringProxyAdmin), ""))
+            address(new TransparentUpgradeableProxy(address(emptyContract), address(mfssiaProxyAdmin), ""))
         );
         blsPubkeyRegistry = IBLSPubkeyRegistry(
-            address(new TransparentUpgradeableProxy(address(emptyContract), address(credibleSquaringProxyAdmin), ""))
+            address(new TransparentUpgradeableProxy(address(emptyContract), address(mfssiaProxyAdmin), ""))
         );
         indexRegistry = IIndexRegistry(
-            address(new TransparentUpgradeableProxy(address(emptyContract), address(credibleSquaringProxyAdmin), ""))
+            address(new TransparentUpgradeableProxy(address(emptyContract), address(mfssiaProxyAdmin), ""))
         );
         stakeRegistry = IStakeRegistry(
-            address(new TransparentUpgradeableProxy(address(emptyContract), address(credibleSquaringProxyAdmin), ""))
+            address(new TransparentUpgradeableProxy(address(emptyContract), address(mfssiaProxyAdmin), ""))
         );
 
         // Second, deploy the *implementation* contracts, using the *proxy contracts* as inputs
         {
             stakeRegistryImplementation =
-                new StakeRegistry(registryCoordinator, strategyManager, credibleSquaringServiceManager);
+                new StakeRegistry(registryCoordinator, strategyManager, mfssiaServiceManager);
 
             // set up a quorum with each strategy that needs to be set up
             uint96[] memory minimumStakeForQuorum = new uint96[](numStrategies);
@@ -240,7 +240,7 @@ contract MfssiaDeployer is Script, Utils {
                     kickBIPsOfTotalStake: 100
                 });
             }
-            credibleSquaringProxyAdmin.upgradeAndCall(
+            mfssiaProxyAdmin.upgradeAndCall(
                 TransparentUpgradeableProxy(payable(address(registryCoordinator))),
                 address(registryCoordinatorImplementation),
                 abi.encodeWithSelector(
@@ -258,22 +258,22 @@ contract MfssiaDeployer is Script, Utils {
 
         blsPubkeyRegistryImplementation = new BLSPubkeyRegistry(registryCoordinator, pubkeyCompendium);
 
-        credibleSquaringProxyAdmin.upgrade(
+        mfssiaProxyAdmin.upgrade(
             TransparentUpgradeableProxy(payable(address(blsPubkeyRegistry))), address(blsPubkeyRegistryImplementation)
         );
 
         indexRegistryImplementation = new IndexRegistry(registryCoordinator);
 
-        credibleSquaringProxyAdmin.upgrade(
+        mfssiaProxyAdmin.upgrade(
             TransparentUpgradeableProxy(payable(address(indexRegistry))), address(indexRegistryImplementation)
         );
 
-        credibleSquaringServiceManagerImplementation =
-            new MfssiaServiceManager(registryCoordinator, slasher, credibleSquaringTaskManager);
+        mfssiaServiceManagerImplementation =
+            new MfssiaServiceManager(registryCoordinator, slasher, mfssiaTaskManager);
         // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
-        credibleSquaringProxyAdmin.upgradeAndCall(
-            TransparentUpgradeableProxy(payable(address(credibleSquaringServiceManager))),
-            address(credibleSquaringServiceManagerImplementation),
+        mfssiaProxyAdmin.upgradeAndCall(
+            TransparentUpgradeableProxy(payable(address(mfssiaServiceManager))),
+            address(mfssiaServiceManagerImplementation),
             abi.encodeWithSelector(
                 mfssiaServiceManager.initialize.selector,
                 mfssiaPauserReg,
@@ -281,13 +281,13 @@ contract MfssiaDeployer is Script, Utils {
             )
         );
 
-        credibleSquaringTaskManagerImplementation =
+        mfssiaTaskManagerImplementation =
             new MfssiaTaskManager(registryCoordinator, TASK_RESPONSE_WINDOW_BLOCK);
 
         // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
-        credibleSquaringProxyAdmin.upgradeAndCall(
-            TransparentUpgradeableProxy(payable(address(credibleSquaringTaskManager))),
-            address(credibleSquaringTaskManagerImplementation),
+        mfssiaProxyAdmin.upgradeAndCall(
+            TransparentUpgradeableProxy(payable(address(mfssiaTaskManager))),
+            address(mfssiaTaskManagerImplementation),
             abi.encodeWithSelector(
                 mfssiaTaskManager.initialize.selector,
                 mfssiaPauserReg,
@@ -305,14 +305,14 @@ contract MfssiaDeployer is Script, Utils {
         vm.serializeAddress(deployed_addresses, "erc20Mock", address(erc20Mock));
         vm.serializeAddress(deployed_addresses, "erc20MockStrategy", address(erc20MockStrategy));
         vm.serializeAddress(
-            deployed_addresses, "credibleSquaringServiceManager", address(credibleSquaringServiceManager)
+            deployed_addresses, "mfssiaServiceManager", address(mfssiaServiceManager)
         );
         vm.serializeAddress(
             deployed_addresses,
             "mfssiaServiceManagerImplementation",
             address(mfssiaServiceManagerImplementation)
         );
-        vm.serializeAddress(deployed_addresses, "credibleSquaringTaskManager", address(credibleSquaringTaskManager));
+        vm.serializeAddress(deployed_addresses, "mfssiaTaskManager", address(mfssiaTaskManager));
         vm.serializeAddress(
             deployed_addresses,
             "mfssiaTaskManagerImplementation",

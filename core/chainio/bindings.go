@@ -8,37 +8,46 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 
-	erc20mock "github.com/medalex/mfssia-eigenlayer/contracts/bindings/ERC20Mock"
-	csservicemanager "github.com/medalex/mfssia-eigenlayer/contracts/bindings/MfssiaServiceManager"
-	cstaskmanager "github.com/medalex/mfssia-eigenlayer/contracts/bindings/MfssiaTaskManager"
+	regcoord "github.com/Layr-Labs/eigensdk-go/contracts/bindings/RegistryCoordinator"
+	erc20mock "github.com/Layr-Labs/incredible-squaring-avs/contracts/bindings/ERC20Mock"
+	csservicemanager "github.com/Layr-Labs/incredible-squaring-avs/contracts/bindings/IncredibleSquaringServiceManager"
+	cstaskmanager "github.com/Layr-Labs/incredible-squaring-avs/contracts/bindings/IncredibleSquaringTaskManager"
 )
 
-type AvsServiceBindings struct {
-	TaskManager    *cstaskmanager.ContractMfssiaTaskManager
-	ServiceManager *csservicemanager.ContractMfssiaServiceManager
+type AvsManagersBindings struct {
+	TaskManager    *cstaskmanager.ContractIncredibleSquaringTaskManager
+	ServiceManager *csservicemanager.ContractIncredibleSquaringServiceManager
 	ethClient      eth.EthClient
 	logger         logging.Logger
 }
 
-func NewAvsServiceBindings(serviceManagerAddr, blsOperatorStateRetrieverAddr gethcommon.Address, ethclient eth.EthClient, logger logging.Logger) (*AvsServiceBindings, error) {
-	contractServiceManager, err := csservicemanager.NewContractMfssiaServiceManager(serviceManagerAddr, ethclient)
+func NewAvsManagersBindings(registryCoordinatorAddr, operatorStateRetrieverAddr gethcommon.Address, ethclient eth.EthClient, logger logging.Logger) (*AvsManagersBindings, error) {
+	contractRegistryCoordinator, err := regcoord.NewContractRegistryCoordinator(registryCoordinatorAddr, ethclient)
+	if err != nil {
+		return nil, err
+	}
+	serviceManagerAddr, err := contractRegistryCoordinator.ServiceManager(&bind.CallOpts{})
+	if err != nil {
+		return nil, err
+	}
+	contractServiceManager, err := csservicemanager.NewContractIncredibleSquaringServiceManager(serviceManagerAddr, ethclient)
 	if err != nil {
 		logger.Error("Failed to fetch IServiceManager contract", "err", err)
 		return nil, err
 	}
 
-	taskManagerAddr, err := contractServiceManager.MfssiaTaskManager(&bind.CallOpts{})
+	taskManagerAddr, err := contractServiceManager.IncredibleSquaringTaskManager(&bind.CallOpts{})
 	if err != nil {
 		logger.Error("Failed to fetch TaskManager address", "err", err)
 		return nil, err
 	}
-	contractTaskManager, err := cstaskmanager.NewContractMfssiaTaskManager(taskManagerAddr, ethclient)
+	contractTaskManager, err := cstaskmanager.NewContractIncredibleSquaringTaskManager(taskManagerAddr, ethclient)
 	if err != nil {
-		logger.Error("Failed to fetch IMfssiaTaskManager contract", "err", err)
+		logger.Error("Failed to fetch IIncredibleSquaringTaskManager contract", "err", err)
 		return nil, err
 	}
 
-	return &AvsServiceBindings{
+	return &AvsManagersBindings{
 		ServiceManager: contractServiceManager,
 		TaskManager:    contractTaskManager,
 		ethClient:      ethclient,
@@ -46,7 +55,7 @@ func NewAvsServiceBindings(serviceManagerAddr, blsOperatorStateRetrieverAddr get
 	}, nil
 }
 
-func (b *AvsServiceBindings) GetErc20Mock(tokenAddr common.Address) (*erc20mock.ContractERC20Mock, error) {
+func (b *AvsManagersBindings) GetErc20Mock(tokenAddr common.Address) (*erc20mock.ContractERC20Mock, error) {
 	contractErc20Mock, err := erc20mock.NewContractERC20Mock(tokenAddr, b.ethClient)
 	if err != nil {
 		b.logger.Error("Failed to fetch ERC20Mock contract", "err", err)

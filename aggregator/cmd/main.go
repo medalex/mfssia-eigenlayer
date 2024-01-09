@@ -9,8 +9,8 @@ import (
 
 	"github.com/urfave/cli"
 
-	"github.com/medalex/mfssia-eigenlayer/aggregator"
-	"github.com/medalex/mfssia-eigenlayer/core/config"
+	"github.com/Layr-Labs/incredible-squaring-avs/aggregator"
+	"github.com/Layr-Labs/incredible-squaring-avs/core/config"
 )
 
 var (
@@ -26,8 +26,8 @@ func main() {
 	app.Flags = config.Flags
 	app.Version = fmt.Sprintf("%s-%s-%s", Version, GitCommit, GitDate)
 	app.Name = "mfssia-aggregator"
-	app.Usage = "Credible MFSSIA Aggregator"
-	app.Description = "Service that sends sytem 1 and 2 Ids to be credibly checked by operator nodes."
+	app.Usage = "Mfssia Aggregator"
+	app.Description = "Service that sends data of 2 systems  to be checked by operator nodes."
 
 	app.Action = aggregatorMain
 	err := app.Run(os.Args)

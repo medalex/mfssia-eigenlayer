@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/medalex/mfssia-eigenlayer/cli/actions"
-	"github.com/medalex/mfssia-eigenlayer/core/config"
+	"github.com/Layr-Labs/incredible-squaring-avs/cli/actions"
+	"github.com/Layr-Labs/incredible-squaring-avs/core/config"
 	"github.com/urfave/cli"
 )
 
@@ -19,12 +19,6 @@ func main() {
 			Aliases: []string{"rel"},
 			Usage:   "registers operator with eigenlayer (this should be called via eigenlayer cli, not plugin, but keeping here for convenience for now)",
 			Action:  actions.RegisterOperatorWithEigenlayer,
-		},
-		{
-			Name:    "register-operator-bls-pubkeys",
-			Aliases: []string{"rpk"},
-			Usage:   "registers operator bls pubkeys with eigenlayer pubkey compendium (this should be called via eigenlayer cli, not plugin, but keeping here for convenience for now)",
-			Action:  actions.RegisterOperatorBlsPubkeys,
 		},
 		{
 			Name:    "deposit-into-strategy",
@@ -61,7 +55,7 @@ func main() {
 		{
 			Name:    "print-operator-status",
 			Aliases: []string{"s"},
-			Usage:   "prints operator status as viewed from mfssia contracts",
+			Usage:   "prints operator status as viewed from incredible squaring contracts",
 			Action:  actions.PrintOperatorStatus,
 		},
 	}

@@ -4,24 +4,24 @@ import (
 	"math/big"
 
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
+	cstaskmanager "github.com/Layr-Labs/incredible-squaring-avs/contracts/bindings/IncredibleSquaringTaskManager"
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	cstaskmanager "github.com/medalex/mfssia-eigenlayer/contracts/bindings/MfssiaTaskManager"
 	"golang.org/x/crypto/sha3"
 )
 
-// this hardcodes abi.encode() for cstaskmanager.IMfssiaTaskManagerTaskResponse
+// this hardcodes abi.encode() for cstaskmanager.IIncredibleSquaringTaskManagerTaskResponse
 // unclear why abigen doesn't provide this out of the box...
-func AbiEncodeTaskResponse(h *cstaskmanager.IMfssiaTaskManagerTaskResponse) ([]byte, error) {
+func AbiEncodeTaskResponse(h *cstaskmanager.IIncredibleSquaringTaskManagerTaskResponse) ([]byte, error) {
 
-	// The order here has to match the field ordering of cstaskmanager.IMfssiaTaskManagerTaskResponse
+	// The order here has to match the field ordering of cstaskmanager.IIncredibleSquaringTaskManagerTaskResponse
 	taskResponseType, err := abi.NewType("tuple", "", []abi.ArgumentMarshaling{
 		{
 			Name: "referenceTaskIndex",
 			Type: "uint32",
 		},
 		{
-			Name: "faultySystem",
-			Type: "string",
+			Name: "numberSquared",
+			Type: "uint256",
 		},
 	})
 	if err != nil {
@@ -42,7 +42,7 @@ func AbiEncodeTaskResponse(h *cstaskmanager.IMfssiaTaskManagerTaskResponse) ([]b
 }
 
 // GetTaskResponseDigest returns the hash of the TaskResponse, which is what operators sign over
-func GetTaskResponseDigest(h *cstaskmanager.IMfssiaTaskManagerTaskResponse) ([32]byte, error) {
+func GetTaskResponseDigest(h *cstaskmanager.IIncredibleSquaringTaskManagerTaskResponse) ([32]byte, error) {
 
 	encodeTaskResponseByte, err := AbiEncodeTaskResponse(h)
 	if err != nil {

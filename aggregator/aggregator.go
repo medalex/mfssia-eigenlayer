@@ -2,25 +2,24 @@ package aggregator
 
 import (
 	"context"
+	"math/big"
 	"sync"
 	"time"
 
 	"github.com/Layr-Labs/eigensdk-go/logging"
-	"github.com/Layr-Labs/eigensdk-go/signer"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients"
 	sdkclients "github.com/Layr-Labs/eigensdk-go/chainio/clients"
-	sdkelcontracts "github.com/Layr-Labs/eigensdk-go/chainio/elcontracts"
 	"github.com/Layr-Labs/eigensdk-go/services/avsregistry"
 	blsagg "github.com/Layr-Labs/eigensdk-go/services/bls_aggregation"
-	pubkeycompserv "github.com/Layr-Labs/eigensdk-go/services/pubkeycompendium"
+	oppubkeysserv "github.com/Layr-Labs/eigensdk-go/services/operatorpubkeys"
 	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
-	"github.com/medalex/mfssia-eigenlayer/aggregator/types"
-	"github.com/medalex/mfssia-eigenlayer/core"
-	"github.com/medalex/mfssia-eigenlayer/core/chainio"
-	"github.com/medalex/mfssia-eigenlayer/core/config"
+	"github.com/Layr-Labs/incredible-squaring-avs/aggregator/types"
+	"github.com/Layr-Labs/incredible-squaring-avs/core"
+	"github.com/Layr-Labs/incredible-squaring-avs/core/chainio"
+	"github.com/Layr-Labs/incredible-squaring-avs/core/config"
 
-	cstaskmanager "github.com/medalex/mfssia-eigenlayer/contracts/bindings/MfssiaTaskManager"
+	cstaskmanager "github.com/Layr-Labs/incredible-squaring-avs/contracts/bindings/IncredibleSquaringTaskManager"
 )
 
 const (
@@ -29,13 +28,10 @@ const (
 	// ideally be fetched from the contracts
 	taskChallengeWindowBlock = 100
 	blockTimeSeconds         = 12 * time.Second
-
-	system1Value = "1234"
-	system2Value = "5678"
-	dkgValue     = "1234"
+	avsName                  = "incredible-squaring"
 )
 
-// Aggregator sends tasks (system 1 and system 2 data) onchain, then listens for operator signed TaskResponses.
+// Aggregator sends tasks (numbers to square) onchain, then listens for operator signed TaskResponses.
 // It aggregates responses signatures, and if any of the TaskResponses reaches the QuorumThresholdPercentage for each quorum
 // (currently we only use a single quorum of the ERC20Mock token), it sends the aggregated TaskResponse and signature onchain.
 //
@@ -74,70 +70,43 @@ type Aggregator struct {
 	avsWriter        chainio.AvsWriterer
 	// aggregation related fields
 	blsAggregationService blsagg.BlsAggregationService
-	tasks                 map[types.TaskIndex]cstaskmanager.IMfssiaTaskManagerTask
+	tasks                 map[types.TaskIndex]cstaskmanager.IIncredibleSquaringTaskManagerTask
 	tasksMu               sync.RWMutex
-	taskResponses         map[types.TaskIndex]map[sdktypes.TaskResponseDigest]cstaskmanager.IMfssiaTaskManagerTaskResponse
+	taskResponses         map[types.TaskIndex]map[sdktypes.TaskResponseDigest]cstaskmanager.IIncredibleSquaringTaskManagerTaskResponse
 	taskResponsesMu       sync.RWMutex
 }
 
 // NewAggregator creates a new Aggregator with the provided config.
 func NewAggregator(c *config.Config) (*Aggregator, error) {
-	avsReader, err := chainio.NewAvsReaderFromConfig(c)
+
+	avsReader, err := chainio.BuildAvsReaderFromConfig(c)
 	if err != nil {
-		c.Logger.Error("Cannot create EthReader", "err", err)
+		c.Logger.Error("Cannot create avsReader", "err", err)
 		return nil, err
 	}
 
-	chainId, err := c.EthHttpClient.ChainID(context.Background())
+	avsWriter, err := chainio.BuildAvsWriterFromConfig(c)
 	if err != nil {
-		c.Logger.Error("Cannot get chainId", "err", err)
+		c.Logger.Errorf("Cannot create avsWriter", "err", err)
 		return nil, err
 	}
 
-	privateKeySigner, err := signer.NewPrivateKeySigner(c.EcdsaPrivateKey, chainId)
-	if err != nil {
-		c.Logger.Error("Cannot create signer", "err", err)
-		return nil, err
+	chainioConfig := sdkclients.BuildAllConfig{
+		EthHttpUrl:                 c.EthHttpRpcUrl,
+		EthWsUrl:                   c.EthWsRpcUrl,
+		RegistryCoordinatorAddr:    c.IncredibleSquaringRegistryCoordinatorAddr.String(),
+		OperatorStateRetrieverAddr: c.OperatorStateRetrieverAddr.String(),
+		AvsName:                    avsName,
+		PromMetricsIpPortAddress:   ":9090",
 	}
-	c.Signer = privateKeySigner
-
-	avsWriter, err := chainio.NewAvsWriterFromConfig(c)
+	clients, err := clients.BuildAll(chainioConfig, c.AggregatorAddress, c.SignerFn, c.Logger)
 	if err != nil {
-		c.Logger.Errorf("Cannot create EthSubscriber", "err", err)
-		return nil, err
-	}
-
-	c.Logger.Info("SlasherAddr", "SlasherAddr", c.SlasherAddr)
-
-	// TODO (Soubhik): This is a hack to get the slasher address. We should be able to get it from the config.
-	slasherAddr, err := avsWriter.AvsContractBindings.ServiceManager.Slasher(&bind.CallOpts{})
-	if err != nil {
-		c.Logger.Error("Cannot get slasher address", "err", err)
-		return nil, err
-	}
-	c.Logger.Info("BlsPublicKeyCompendiumAddress", "BlsPublicKeyCompendiumAddress", c.BlsPublicKeyCompendiumAddress)
-
-	elContractsClient, err := sdkclients.NewELContractsChainClient(slasherAddr, c.BlsPublicKeyCompendiumAddress, c.EthHttpClient, c.EthWsClient, c.Logger)
-	if err != nil {
-		c.Logger.Error("Cannot create ELContractsChainClient", "err", err)
-		return nil, err
-	}
-	eigenlayerReader, err := sdkelcontracts.NewELChainReader(elContractsClient, c.Logger, c.EthHttpClient)
-	if err != nil {
-		c.Logger.Error("Cannot create EigenlayerReader", "err", err)
-		return nil, err
-	}
-	eigenlayerSubscriber, err := sdkelcontracts.NewELChainSubscriber(
-		elContractsClient,
-		c.Logger,
-	)
-	if err != nil {
-		c.Logger.Error("Cannot create EigenlayerEthSubscriber", "err", err)
+		c.Logger.Errorf("Cannot create sdk clients", "err", err)
 		return nil, err
 	}
 
-	pubkeyCompendiumService := pubkeycompserv.NewPubkeyCompendiumInMemory(context.Background(), eigenlayerSubscriber, eigenlayerReader, c.Logger)
-	avsRegistryService := avsregistry.NewAvsRegistryServiceChainCaller(avsReader, eigenlayerReader, pubkeyCompendiumService, c.Logger)
+	operatorPubkeysService := oppubkeysserv.NewOperatorPubkeysServiceInMemory(context.Background(), clients.AvsRegistryChainSubscriber, clients.AvsRegistryChainReader, c.Logger)
+	avsRegistryService := avsregistry.NewAvsRegistryServiceChainCaller(avsReader, operatorPubkeysService, c.Logger)
 	blsAggregationService := blsagg.NewBlsAggregatorService(avsRegistryService, c.Logger)
 
 	return &Aggregator{
@@ -145,8 +114,8 @@ func NewAggregator(c *config.Config) (*Aggregator, error) {
 		serverIpPortAddr:      c.AggregatorServerIpPortAddr,
 		avsWriter:             avsWriter,
 		blsAggregationService: blsAggregationService,
-		tasks:                 make(map[types.TaskIndex]cstaskmanager.IMfssiaTaskManagerTask),
-		taskResponses:         make(map[types.TaskIndex]map[sdktypes.TaskResponseDigest]cstaskmanager.IMfssiaTaskManagerTaskResponse),
+		tasks:                 make(map[types.TaskIndex]cstaskmanager.IIncredibleSquaringTaskManagerTask),
+		taskResponses:         make(map[types.TaskIndex]map[sdktypes.TaskResponseDigest]cstaskmanager.IIncredibleSquaringTaskManagerTaskResponse),
 	}, nil
 }
 
@@ -162,7 +131,7 @@ func (agg *Aggregator) Start(ctx context.Context) error {
 	taskNum := int64(0)
 	// ticker doesn't tick immediately, so we send the first task here
 	// see https://github.com/golang/go/issues/17601
-	_ = agg.sendNewTask(system1Value, system2Value, dkgValue)
+	_ = agg.sendNewTask(big.NewInt(taskNum))
 	taskNum++
 
 	for {
@@ -173,7 +142,7 @@ func (agg *Aggregator) Start(ctx context.Context) error {
 			agg.logger.Info("Received response from blsAggregationService", "blsAggServiceResp", blsAggServiceResp)
 			agg.sendAggregatedResponseToContract(blsAggServiceResp)
 		case <-ticker.C:
-			err := agg.sendNewTask(system1Value, system2Value, dkgValue)
+			err := agg.sendNewTask(big.NewInt(taskNum))
 			taskNum++
 			if err != nil {
 				// we log the errors inside sendNewTask() so here we just continue to the next task
@@ -226,18 +195,12 @@ func (agg *Aggregator) sendAggregatedResponseToContract(blsAggServiceResp blsagg
 
 // sendNewTask sends a new task to the task manager contract, and updates the Task dict struct
 // with the information of operators opted into quorum 0 at the block of task creation.
-func (agg *Aggregator) sendNewTask(system1Value string, system2Value string, dkgValue string) error {
-	agg.logger.Info("Aggregator sending new task", "system 1 value", system1Value, "system 2 value", system2Value, "dkg value", dkgValue)
-	// Send system 1 and 2 Ids to the task manager contract
-	newTask, taskIndex, err := agg.avsWriter.SendNewTaskFailingSystem(
-		context.Background(),
-		system1Value,
-		system2Value,
-		dkgValue,
-		types.QUORUM_THRESHOLD_NUMERATOR,
-		types.QUORUM_NUMBERS)
+func (agg *Aggregator) sendNewTask(numToSquare *big.Int) error {
+	agg.logger.Info("Aggregator sending new task", "numberToSquare", numToSquare)
+	// Send number to square to the task manager contract
+	newTask, taskIndex, err := agg.avsWriter.SendNewTaskNumberToSquare(context.Background(), numToSquare, types.QUORUM_THRESHOLD_NUMERATOR, types.QUORUM_NUMBERS)
 	if err != nil {
-		agg.logger.Error("Aggregator failed to send systems data", "err", err)
+		agg.logger.Error("Aggregator failed to send number to square", "err", err)
 		return err
 	}
 

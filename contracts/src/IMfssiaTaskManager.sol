@@ -1,26 +1,34 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import "@eigenlayer/contracts/libraries/BN254.sol";
+import "@eigenlayer-middleware/src/libraries/BN254.sol";
 
 interface IMfssiaTaskManager {
     // EVENTS
     event NewTaskCreated(uint32 indexed taskIndex, Task task);
 
-    event TaskResponded(TaskResponse taskResponse, TaskResponseMetadata taskResponseMetadata);
+    event TaskResponded(
+        TaskResponse taskResponse,
+        TaskResponseMetadata taskResponseMetadata
+    );
 
     event TaskCompleted(uint32 indexed taskIndex);
 
-    event TaskChallengedSuccessfully(uint32 indexed taskIndex, address indexed challenger);
+    event TaskChallengedSuccessfully(
+        uint32 indexed taskIndex,
+        address indexed challenger
+    );
 
-    event TaskChallengedUnsuccessfully(uint32 indexed taskIndex, address indexed challenger);
+    event TaskChallengedUnsuccessfully(
+        uint32 indexed taskIndex,
+        address indexed challenger
+    );
 
     // STRUCTS
     struct Task {
         uint32 taskCreatedBlock;
-        uint32 quorumThresholdPercentage;
         // task submitter decides on the criteria for a task to be completed
-        // note that this does not mean the task was "correctly" answered (i.e. the number was failing system ientified correctly)
+        // note that this does not mean the task was "correctly" answered (i.e. the number was squared correctly)
         //      this is for the challenge logic to verify
         // task is completed (and contract will accept its TaskResponse) when each quorumNumbers specified here
         // are signed by at least quorumThresholdPercentage of the operators
@@ -29,6 +37,7 @@ interface IMfssiaTaskManager {
         string system1Value;
         string system2Value;
         string dkgValue;
+        uint32 quorumThresholdPercentage;
     }
 
     // Task response is hashed and signed by operators.
@@ -37,7 +46,7 @@ interface IMfssiaTaskManager {
         // Can be obtained by the operator from the event NewTaskCreated.
         uint32 referenceTaskIndex;
         // This is just the response that the operator has to compute by itself.
-        string faultySystem;
+        string failedSystem;
     }
 
     // Extra information related to taskResponse, which is filled inside the contract.
@@ -49,7 +58,7 @@ interface IMfssiaTaskManager {
     }
 
     // FUNCTIONS
-    // NOTE: this function creates new task from aggregator.
+    // NOTE: this function creates new task.
     function createNewTask(
         string calldata system1Value,
         string calldata system2Value,

@@ -2,7 +2,6 @@ package aggregator
 
 import (
 	"context"
-	"math/big"
 	"sync"
 	"time"
 
@@ -131,6 +130,11 @@ func (agg *Aggregator) Start(ctx context.Context) error {
 	taskNum := int64(0)
 	// ticker doesn't tick immediately, so we send the first task here
 	// see https://github.com/golang/go/issues/17601
+
+	var system1Value = "sys1"
+	var system2Value = "sys2"
+	var dkgValue = "sys1"
+
 	_ = agg.sendNewTask(system1Value, system2Value, dkgValue)
 	taskNum++
 
@@ -142,7 +146,7 @@ func (agg *Aggregator) Start(ctx context.Context) error {
 			agg.logger.Info("Received response from blsAggregationService", "blsAggServiceResp", blsAggServiceResp)
 			agg.sendAggregatedResponseToContract(blsAggServiceResp)
 		case <-ticker.C:
-			err := agg.sendNewTask(big.NewInt(taskNum))
+			err := agg.sendNewTask(system1Value, system2Value, dkgValue)
 			taskNum++
 			if err != nil {
 				// we log the errors inside sendNewTask() so here we just continue to the next task
@@ -199,7 +203,7 @@ func (agg *Aggregator) sendNewTask(system1Value string, system2Value string, dkg
 	agg.logger.Info("Aggregator sending new task", "system 1 value", system1Value, "system 2 value", system2Value, "dkg value", dkgValue)
 	// Send system 1 and 2 Ids to the task manager contract
 
-	newTask, taskIndex, err := agg.avsWriter.SendNewTaskNumberToSquare(
+	newTask, taskIndex, err := agg.avsWriter.SendNewTaskResolveFailedSystem(
 		context.Background(),
 		system1Value,
 		system2Value,

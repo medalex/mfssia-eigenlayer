@@ -16,7 +16,7 @@ import (
 
 	contractRegistryCoordinator "github.com/Layr-Labs/eigensdk-go/contracts/bindings/RegistryCoordinator"
 	bls "github.com/Layr-Labs/eigensdk-go/crypto/bls"
-	contractIncredibleSquaringTaskManager "github.com/Layr-Labs/incredible-squaring-avs/contracts/bindings/IncredibleSquaringTaskManager"
+	contractMfssiaTaskManager "github.com/medalex/mfssia-eigenlayer/contracts/bindings/MfssiaTaskManager"
 	common "github.com/ethereum/go-ethereum/common"
 	types "github.com/ethereum/go-ethereum/core/types"
 	gomock "go.uber.org/mock/gomock"
@@ -61,7 +61,7 @@ func (mr *MockAvsWritererMockRecorder) DeregisterOperator(arg0, arg1, arg2 any) 
 }
 
 // RaiseChallenge mocks base method.
-func (m *MockAvsWriterer) RaiseChallenge(arg0 context.Context, arg1 contractIncredibleSquaringTaskManager.IIncredibleSquaringTaskManagerTask, arg2 contractIncredibleSquaringTaskManager.IIncredibleSquaringTaskManagerTaskResponse, arg3 contractIncredibleSquaringTaskManager.IIncredibleSquaringTaskManagerTaskResponseMetadata, arg4 []contractIncredibleSquaringTaskManager.BN254G1Point) (*types.Receipt, error) {
+func (m *MockAvsWriterer) RaiseChallenge(arg0 context.Context, arg1 contractMfssiaTaskManager.IMfssiaTaskManagerTask, arg2 contractMfssiaTaskManager.IMfssiaTaskManagerTaskResponse, arg3 contractMfssiaTaskManager.IMfssiaTaskManagerTaskResponseMetadata, arg4 []contractMfssiaTaskManager.BN254G1Point) (*types.Receipt, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RaiseChallenge", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(*types.Receipt)
@@ -91,7 +91,7 @@ func (mr *MockAvsWritererMockRecorder) RegisterOperatorWithAVSRegistryCoordinato
 }
 
 // SendAggregatedResponse mocks base method.
-func (m *MockAvsWriterer) SendAggregatedResponse(arg0 context.Context, arg1 contractIncredibleSquaringTaskManager.IIncredibleSquaringTaskManagerTask, arg2 contractIncredibleSquaringTaskManager.IIncredibleSquaringTaskManagerTaskResponse, arg3 contractIncredibleSquaringTaskManager.IBLSSignatureCheckerNonSignerStakesAndSignature) (*types.Receipt, error) {
+func (m *MockAvsWriterer) SendAggregatedResponse(arg0 context.Context, arg1 contractMfssiaTaskManager.IMfssiaTaskManagerTask, arg2 contractMfssiaTaskManager.IMfssiaTaskManagerTaskResponse, arg3 contractMfssiaTaskManager.IBLSSignatureCheckerNonSignerStakesAndSignature) (*types.Receipt, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendAggregatedResponse", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*types.Receipt)
@@ -106,10 +106,10 @@ func (mr *MockAvsWritererMockRecorder) SendAggregatedResponse(arg0, arg1, arg2, 
 }
 
 // SendNewTaskNumberToSquare mocks base method.
-func (m *MockAvsWriterer) SendNewTaskNumberToSquare(arg0 context.Context, arg1 *big.Int, arg2 uint32, arg3 []byte) (contractIncredibleSquaringTaskManager.IIncredibleSquaringTaskManagerTask, uint32, error) {
+func (m *MockAvsWriterer) SendNewTaskNumberToSquare(arg0 context.Context, arg1 *big.Int, arg2 uint32, arg3 []byte) (contractMfssiaTaskManager.IMfssiaTaskManagerTask, uint32, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendNewTaskNumberToSquare", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(contractIncredibleSquaringTaskManager.IIncredibleSquaringTaskManagerTask)
+	ret0, _ := ret[0].(contractMfssiaTaskManager.IMfssiaTaskManagerTask)
 	ret1, _ := ret[1].(uint32)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2

@@ -17,10 +17,10 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/signerv2"
 	"github.com/Layr-Labs/eigensdk-go/utils"
-	"github.com/Layr-Labs/incredible-squaring-avs/core/chainio"
-	"github.com/Layr-Labs/incredible-squaring-avs/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/medalex/mfssia-eigenlayer/core/chainio"
+	"github.com/medalex/mfssia-eigenlayer/types"
 	"github.com/urfave/cli"
 )
 

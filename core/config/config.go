@@ -28,14 +28,14 @@ type Config struct {
 	EigenMetricsIpPortAddress string
 	// we need the url for the eigensdk currently... eventually standardize api so as to
 	// only take an ethclient or an rpcUrl (and build the ethclient at each constructor site)
-	EthHttpRpcUrl                             string
-	EthWsRpcUrl                               string
-	EthHttpClient                             eth.EthClient
-	EthWsClient                               eth.EthClient
-	OperatorStateRetrieverAddr                common.Address
-	IncredibleSquaringRegistryCoordinatorAddr common.Address
-	AggregatorServerIpPortAddr                string
-	RegisterOperatorOnStartup                 bool
+	EthHttpRpcUrl                 string
+	EthWsRpcUrl                   string
+	EthHttpClient                 eth.EthClient
+	EthWsClient                   eth.EthClient
+	OperatorStateRetrieverAddr    common.Address
+	MfssiaRegistryCoordinatorAddr common.Address
+	AggregatorServerIpPortAddr    string
+	RegisterOperatorOnStartup     bool
 	// json:"-" skips this field when marshaling (only used for logging to stdout), since SignerFn doesnt implement marshalJson
 	SignerFn          signerv2.SignerFn `json:"-"`
 	TxMgr             txmgr.TxManager
@@ -52,10 +52,10 @@ type ConfigRaw struct {
 }
 
 // These are read from CredibleSquaringDeploymentFileFlag
-type IncredibleSquaringDeploymentRaw struct {
-	Addresses IncredibleSquaringContractsRaw `json:"addresses"`
+type MfssiaDeploymentRaw struct {
+	Addresses MfssiaContractsRaw `json:"addresses"`
 }
-type IncredibleSquaringContractsRaw struct {
+type MfssiaContractsRaw struct {
 	RegistryCoordinatorAddr    string `json:"registryCoordinator"`
 	OperatorStateRetrieverAddr string `json:"operatorStateRetriever"`
 }
@@ -71,12 +71,12 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 		sdkutils.ReadYamlConfig(configFilePath, &configRaw)
 	}
 
-	var credibleSquaringDeploymentRaw IncredibleSquaringDeploymentRaw
-	credibleSquaringDeploymentFilePath := ctx.GlobalString(CredibleSquaringDeploymentFileFlag.Name)
-	if _, err := os.Stat(credibleSquaringDeploymentFilePath); errors.Is(err, os.ErrNotExist) {
-		panic("Path " + credibleSquaringDeploymentFilePath + " does not exist")
+	var mfssiaDeploymentRaw MfssiaDeploymentRaw
+	mfssiaDeploymentFilePath := ctx.GlobalString(MfssiaDeploymentFileFlag.Name)
+	if _, err := os.Stat(mfssiaDeploymentFilePath); errors.Is(err, os.ErrNotExist) {
+		panic("Path " + mfssiaDeploymentFilePath + " does not exist")
 	}
-	sdkutils.ReadJsonConfig(credibleSquaringDeploymentFilePath, &credibleSquaringDeploymentRaw)
+	sdkutils.ReadJsonConfig(mfssiaDeploymentFilePath, &mfssiaDeploymentRaw)
 
 	logger, err := sdklogging.NewZapLogger(configRaw.Environment)
 	if err != nil {
@@ -124,19 +124,19 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 	txMgr := txmgr.NewSimpleTxManager(ethRpcClient, logger, signerV2, aggregatorAddr)
 
 	config := &Config{
-		EcdsaPrivateKey:            ecdsaPrivateKey,
-		Logger:                     logger,
-		EthWsRpcUrl:                configRaw.EthWsUrl,
-		EthHttpRpcUrl:              configRaw.EthRpcUrl,
-		EthHttpClient:              ethRpcClient,
-		EthWsClient:                ethWsClient,
-		OperatorStateRetrieverAddr: common.HexToAddress(credibleSquaringDeploymentRaw.Addresses.OperatorStateRetrieverAddr),
-		IncredibleSquaringRegistryCoordinatorAddr: common.HexToAddress(credibleSquaringDeploymentRaw.Addresses.RegistryCoordinatorAddr),
-		AggregatorServerIpPortAddr:                configRaw.AggregatorServerIpPortAddr,
-		RegisterOperatorOnStartup:                 configRaw.RegisterOperatorOnStartup,
-		SignerFn:                                  signerV2,
-		TxMgr:                                     txMgr,
-		AggregatorAddress:                         aggregatorAddr,
+		EcdsaPrivateKey:               ecdsaPrivateKey,
+		Logger:                        logger,
+		EthWsRpcUrl:                   configRaw.EthWsUrl,
+		EthHttpRpcUrl:                 configRaw.EthRpcUrl,
+		EthHttpClient:                 ethRpcClient,
+		EthWsClient:                   ethWsClient,
+		OperatorStateRetrieverAddr:    common.HexToAddress(mfssiaDeploymentRaw.Addresses.OperatorStateRetrieverAddr),
+		MfssiaRegistryCoordinatorAddr: common.HexToAddress(mfssiaDeploymentRaw.Addresses.RegistryCoordinatorAddr),
+		AggregatorServerIpPortAddr:    configRaw.AggregatorServerIpPortAddr,
+		RegisterOperatorOnStartup:     configRaw.RegisterOperatorOnStartup,
+		SignerFn:                      signerV2,
+		TxMgr:                         txMgr,
+		AggregatorAddress:             aggregatorAddr,
 	}
 	config.validate()
 	return config, nil
@@ -147,7 +147,7 @@ func (c *Config) validate() {
 	if c.OperatorStateRetrieverAddr == common.HexToAddress("") {
 		panic("Config: BLSOperatorStateRetrieverAddr is required")
 	}
-	if c.IncredibleSquaringRegistryCoordinatorAddr == common.HexToAddress("") {
+	if c.MfssiaRegistryCoordinatorAddr == common.HexToAddress("") {
 		panic("Config: IncredibleSquaringRegistryCoordinatorAddr is required")
 	}
 }
@@ -159,10 +159,10 @@ var (
 		Required: true,
 		Usage:    "Load configuration from `FILE`",
 	}
-	CredibleSquaringDeploymentFileFlag = cli.StringFlag{
-		Name:     "credible-squaring-deployment",
+	MfssiaDeploymentFileFlag = cli.StringFlag{
+		Name:     "mfssia-deployment",
 		Required: true,
-		Usage:    "Load credible squaring contract addresses from `FILE`",
+		Usage:    "Load mfssia contract addresses from `FILE`",
 	}
 	EcdsaPrivateKeyFlag = cli.StringFlag{
 		Name:     "ecdsa-private-key",
@@ -175,7 +175,7 @@ var (
 
 var requiredFlags = []cli.Flag{
 	ConfigFileFlag,
-	CredibleSquaringDeploymentFileFlag,
+	MfssiaDeploymentFileFlag,
 	EcdsaPrivateKeyFlag,
 }
 

@@ -2,7 +2,6 @@ package chainio
 
 import (
 	"context"
-	"math/big"
 
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -19,9 +18,11 @@ import (
 type AvsWriterer interface {
 	avsregistry.AvsRegistryWriter
 
-	SendNewTaskNumberToSquare(
+	SendNewTaskResolveFailedSystem(
 		ctx context.Context,
-		numToSquare *big.Int,
+		system1Value string,
+		system2Value string,
+		dkgValue string,
 		quorumThresholdPercentage uint32,
 		quorumNumbers []byte,
 	) (cstaskmanager.IMfssiaTaskManagerTask, uint32, error)
@@ -75,7 +76,7 @@ func NewAvsWriter(avsRegistryWriter avsregistry.AvsRegistryWriter, avsServiceBin
 }
 
 // returns the tx receipt, as well as the task index (which it gets from parsing the tx receipt logs)
-func (w *AvsWriter) SendNewTaskNumberToSquare(ctx context.Context, system1Value string, system2Value string, dkgValue string, quorumThresholdPercentage uint32, quorumNumbers []byte) (cstaskmanager.IMfssiaTaskManagerTask, uint32, error) {
+func (w *AvsWriter) SendNewTaskResolveFailedSystem(ctx context.Context, system1Value string, system2Value string, dkgValue string, quorumThresholdPercentage uint32, quorumNumbers []byte) (cstaskmanager.IMfssiaTaskManagerTask, uint32, error) {
 	txOpts, err := w.TxMgr.GetNoSendTxOpts()
 	if err != nil {
 		w.logger.Errorf("Error getting tx opts")

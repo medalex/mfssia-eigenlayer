@@ -7,10 +7,10 @@ import (
 	"math/big"
 
 	sdkutils "github.com/Layr-Labs/eigensdk-go/utils"
-	"github.com/Layr-Labs/incredible-squaring-avs/core/config"
-	"github.com/Layr-Labs/incredible-squaring-avs/operator"
-	"github.com/Layr-Labs/incredible-squaring-avs/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/medalex/mfssia-eigenlayer/core/config"
+	"github.com/medalex/mfssia-eigenlayer/operator"
+	"github.com/medalex/mfssia-eigenlayer/types"
 	"github.com/urfave/cli"
 )
 

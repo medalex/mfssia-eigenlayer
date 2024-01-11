@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/Layr-Labs/incredible-squaring-avs/cli/actions"
-	"github.com/Layr-Labs/incredible-squaring-avs/core/config"
+	"github.com/medalex/mfssia-eigenlayer/cli/actions"
+	"github.com/medalex/mfssia-eigenlayer/core/config"
 	"github.com/urfave/cli"
 )
 

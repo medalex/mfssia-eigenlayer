@@ -36,6 +36,8 @@ func NewAvsManagersBindings(registryCoordinatorAddr, operatorStateRetrieverAddr 
 		return nil, err
 	}
 
+	logger.Debug("Calliing MfsiaTaskManager with params", &bind.CallOpts{})
+
 	taskManagerAddr, err := contractServiceManager.MfssiaTaskManager(&bind.CallOpts{})
 	if err != nil {
 		logger.Error("Failed to fetch TaskManager address", "err", err)

@@ -78,6 +78,8 @@ type Aggregator struct {
 // NewAggregator creates a new Aggregator with the provided config.
 func NewAggregator(c *config.Config) (*Aggregator, error) {
 
+	c.Logger.Error("DEbugging initial config", "conf", c)
+
 	avsReader, err := chainio.BuildAvsReaderFromConfig(c)
 	if err != nil {
 		c.Logger.Error("Cannot create avsReader", "err", err)

@@ -11,7 +11,7 @@ package mocks
 import (
 	reflect "reflect"
 
-	aggregator "github.com/Layr-Labs/incredible-squaring-avs/aggregator"
+	aggregator "github.com/medalex/mfssia-eigenlayer/aggregator"
 	gomock "go.uber.org/mock/gomock"
 )
 

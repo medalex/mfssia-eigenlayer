@@ -36,7 +36,8 @@ func NewAvsManagersBindings(registryCoordinatorAddr, operatorStateRetrieverAddr 
 		return nil, err
 	}
 
-	logger.Debug("Calliing MfsiaTaskManager with params", &bind.CallOpts{})
+	logger.Error("Calliing MfsiaTaskManager with params", "param", &bind.CallOpts{})
+	logger.Error("ContractServiceManager is ", "csm", serviceManagerAddr)
 
 	taskManagerAddr, err := contractServiceManager.MfssiaTaskManager(&bind.CallOpts{})
 	if err != nil {

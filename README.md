@@ -19,8 +19,18 @@ This simple session illustrates the basic flow of the AVS. The makefile commands
 
 Start anvil in a separate terminal:
 
+For the first time run deploy eigenlauer first and then deploy avs contracts
+```bash
+deploy-eigenlayer-contracts-to-anvil-and-save-state
+deploy-incredible-squaring-contracts-to-anvil-and-save-state
+```
 ```bash
 make start-anvil-chain-with-el-and-avs-deployed
+```
+
+To deploy smart contractÖ
+```bash
+forge script script/MfssiaDeployer.s.sol:MfssiaDeployer --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 ```
 
 The above command starts a local anvil chain from a [saved state](./tests/anvil/avs-and-eigenlayer-deployed-anvil-state.json) with eigenlayer and incredible-squaring contracts already deployed (but no operator registered).

@@ -28,7 +28,7 @@ deploy-incredible-squaring-contracts-to-anvil-and-save-state
 make start-anvil-chain-with-el-and-avs-deployed
 ```
 
-To deploy smart contractÖ
+To deploy smart contract
 ```bash
 forge script script/MfssiaDeployer.s.sol:MfssiaDeployer --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 ```

@@ -38,13 +38,10 @@ func BuildAvsReaderFromConfig(c *config.Config) (*AvsReader, error) {
 func BuildAvsReader(registryCoordinatorAddr, operatorStateRetrieverAddr gethcommon.Address, ethHttpClient eth.EthClient, logger logging.Logger) (*AvsReader, error) {
 	avsManagersBindings, err := NewAvsManagersBindings(registryCoordinatorAddr, operatorStateRetrieverAddr, ethHttpClient, logger)
 	if err != nil {
-		logger.Error("Error with avsManagersBindings", "err", err)
 		return nil, err
 	}
 	avsRegistryReader, err := sdkavsregistry.BuildAvsRegistryChainReader(registryCoordinatorAddr, operatorStateRetrieverAddr, ethHttpClient, logger)
 	if err != nil {
-		logger.Error("Error with avsRegistryReader", "err", err)
-
 		return nil, err
 	}
 

@@ -130,9 +130,9 @@ func (agg *Aggregator) Start(ctx context.Context) error {
 	// ticker doesn't tick immediately, so we send the first task here
 	// see https://github.com/golang/go/issues/17601
 
-	var system1Value = "sys1"
-	var system2Value = "sys2"
-	var dkgValue = "sys1"
+	var system1Value = "system1"
+	var system2Value = "system2"
+	var dkgValue = "system1"
 
 	_ = agg.sendNewTask(system1Value, system2Value, dkgValue)
 	taskNum++

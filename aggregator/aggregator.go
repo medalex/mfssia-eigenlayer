@@ -2,6 +2,7 @@ package aggregator
 
 import (
 	"context"
+	"net/http"
 	"sync"
 	"time"
 
@@ -120,22 +121,9 @@ func NewAggregator(c *config.Config) (*Aggregator, error) {
 func (agg *Aggregator) Start(ctx context.Context) error {
 	agg.logger.Infof("Starting aggregator.")
 	agg.logger.Infof("Starting aggregator rpc server.")
+
 	go agg.startServer(ctx)
-
-	// TODO(soubhik): refactor task generation/sending into a separate function that we can run as goroutine
-	ticker := time.NewTicker(10 * time.Second)
-	agg.logger.Infof("Aggregator set to send new task every 10 seconds...")
-	defer ticker.Stop()
-	taskNum := int64(0)
-	// ticker doesn't tick immediately, so we send the first task here
-	// see https://github.com/golang/go/issues/17601
-
-	var system1Value = "system1"
-	var system2Value = "system2"
-	var dkgValue = "system1"
-
-	_ = agg.sendNewTask(system1Value, system2Value, dkgValue)
-	taskNum++
+	go agg.StartRestApi()
 
 	for {
 		select {
@@ -144,14 +132,27 @@ func (agg *Aggregator) Start(ctx context.Context) error {
 		case blsAggServiceResp := <-agg.blsAggregationService.GetResponseChannel():
 			agg.logger.Info("Received response from blsAggregationService", "blsAggServiceResp", blsAggServiceResp)
 			agg.sendAggregatedResponseToContract(blsAggServiceResp)
-		case <-ticker.C:
-			err := agg.sendNewTask(system1Value, system2Value, dkgValue)
-			taskNum++
-			if err != nil {
-				// we log the errors inside sendNewTask() so here we just continue to the next task
-				continue
-			}
 		}
+	}
+}
+
+func (agg *Aggregator) StartRestApi() {
+	mux := http.NewServeMux()
+
+	taskHandler := &taskHandler{
+		aggregator: agg,
+	}
+
+	mux.Handle("/new-task", taskHandler)
+
+	http.ListenAndServe(":8080", mux)
+}
+
+func GenerateTask() MfssiaTask {
+	return MfssiaTask{
+		system1Value: "system1",
+		system2Value: "system2",
+		dkgValue:     "system1",
 	}
 }
 
@@ -198,15 +199,15 @@ func (agg *Aggregator) sendAggregatedResponseToContract(blsAggServiceResp blsagg
 
 // sendNewTask sends a new task to the task manager contract, and updates the Task dict struct
 // with the information of operators opted into quorum 0 at the block of task creation.
-func (agg *Aggregator) sendNewTask(system1Value string, system2Value string, dkgValue string) error {
-	agg.logger.Info("Aggregator sending new task", "system 1 value", system1Value, "system 2 value", system2Value, "dkg value", dkgValue)
+func (agg *Aggregator) sendNewTask(task MfssiaTask) error {
+	agg.logger.Info("Aggregator sending new task", "system 1 value", task.system1Value, "system 2 value", task.system2Value, "dkg value", task.dkgValue)
 	// Send system 1 and 2 Ids to the task manager contract
 
 	newTask, taskIndex, err := agg.avsWriter.SendNewTaskResolveFailedSystem(
 		context.Background(),
-		system1Value,
-		system2Value,
-		dkgValue,
+		task.system1Value,
+		task.system2Value,
+		task.dkgValue,
 		types.QUORUM_THRESHOLD_NUMERATOR,
 		types.QUORUM_NUMBERS)
 	if err != nil {

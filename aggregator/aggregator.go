@@ -139,21 +139,13 @@ func (agg *Aggregator) Start(ctx context.Context) error {
 func (agg *Aggregator) StartRestApi() {
 	mux := http.NewServeMux()
 
-	taskHandler := &taskHandler{
+	taskHandler := &TaskHandler{
 		aggregator: agg,
 	}
 
 	mux.Handle("/new-task", taskHandler)
 
 	http.ListenAndServe(":8080", mux)
-}
-
-func GenerateTask() MfssiaTask {
-	return MfssiaTask{
-		system1Value: "system1",
-		system2Value: "system2",
-		dkgValue:     "system1",
-	}
 }
 
 func (agg *Aggregator) sendAggregatedResponseToContract(blsAggServiceResp blsagg.BlsAggregationServiceResponse) {

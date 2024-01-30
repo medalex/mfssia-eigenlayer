@@ -314,7 +314,7 @@ func (o *Operator) ProcessNewTaskCreatedLog(newTaskCreatedLog *cstaskmanager.Con
 		"QuorumThresholdPercentage", newTaskCreatedLog.Task.QuorumThresholdPercentage,
 	)
 	//TODO How we check the rece3ived result? Do we need to dgo to DKG and ask here?
-	failedSystem := "system1"
+	failedSystem := o.DefineFailedSystem(newTaskCreatedLog.Task.System1Value, newTaskCreatedLog.Task.System2Value, newTaskCreatedLog.Task.DkgValue)
 
 	taskResponse := &cstaskmanager.IMfssiaTaskManagerTaskResponse{
 		ReferenceTaskIndex: newTaskCreatedLog.TaskIndex,
@@ -337,4 +337,17 @@ func (o *Operator) SignTaskResponse(taskResponse *cstaskmanager.IMfssiaTaskManag
 	}
 	o.logger.Debug("Signed task response", "signedTaskResponse", signedTaskResponse)
 	return signedTaskResponse, nil
+}
+
+func (o *Operator) DefineFailedSystem(s1 string, s2 string, dkg string) string {
+	isSystem1Correct := s1 == dkg
+	isSystem2Correct := s2 == dkg
+
+	if !isSystem1Correct {
+		return "system1"
+	} else if !isSystem2Correct {
+		return "system2"
+	} else {
+		return "Both systems do match the DKG value"
+	}
 }
